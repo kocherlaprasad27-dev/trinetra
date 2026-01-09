@@ -1,0 +1,84 @@
+{
+  "audit": {
+    "status": "SUBMITTED",
+    "created_at": "2025-12-20T10:02:58.709Z",
+    "submitted_at": "2025-12-20T10:07:00.430Z",
+    "last_modified_at": "2025-12-20T10:02:58.709Z"
+  },
+  "rooms": [
+    {
+      "items": [],
+      "width": "",
+      "length": "",
+      "scored": true,
+      "room_id": "living_room",
+      "room_type": "LIVING_ROOM",
+      "room_label": "Living Room"
+    },
+    {
+      "items": [],
+      "width": "",
+      "length": "",
+      "scored": true,
+      "room_id": "bedroom",
+      "room_type": "BEDROOM",
+      "room_label": "Bedroom"
+    },
+    {
+      "items": [],
+      "width": "",
+      "length": "",
+      "scored": true,
+      "room_id": "kitchen",
+      "room_type": "KITCHEN",
+      "room_label": "Kitchen"
+    },
+    {
+      "items": [],
+      "width": "",
+      "length": "",
+      "scored": true,
+      "room_id": "bathroom",
+      "room_type": "BATHROOM",
+      "room_label": "Bathroom"
+    },
+    {
+      "items": [],
+      "width": "",
+      "length": "",
+      "scored": true,
+      "room_id": "balcony",
+      "room_type": "BALCONY",
+      "room_label": "Balcony"
+    }
+  ],
+  "derived": {
+    "room_scores": {
+      "balcony": 0,
+      "bedroom": 0,
+      "kitchen": 0,
+      "bathroom": 0,
+      "living_room": 0
+    },
+    "overall_score": 0,
+    "severity_counts": {
+      "major": 0,
+      "minor": 0,
+      "cosmetic": 0,
+      "critical": 0
+    }
+  },
+  "metadata": {
+    "notes": "",
+    "technician": "Sai",
+    "client_name": "",
+    "property_id": "",
+    "client_email": null,
+    "client_phone": null,
+    "property_type": "Apartment",
+    "inspection_date": "2025-12-20",
+    "property_address": ""
+  },
+  "inspection_id": "INS-1766224978708",
+  "schema_version": "1.0"
+}

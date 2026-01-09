@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Inspection Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: #1e3c72;
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 30px;
+            font-size: 18px;
+            border-bottom: 2px solid #0ea5e9;
+            padding-bottom: 10px;
+        }
+
+        .sidebar nav a {
+            display: block;
+            padding: 12px 15px;
+            margin: 5px 0;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+            cursor: pointer;
+        }
+
+        .sidebar nav a:hover,
+        .sidebar nav a.active {
+            background: #0ea5e9;
+        }
+
+        .user-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .user-info p {
+            margin: 5px 0;
+            font-size: 12px;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 10px;
+            background: #ef4444;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            margin: 0;
+            color: #1e3c72;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            color: #1e3c72;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .password-container {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #666;
+            font-size: 14px;
+            user-select: none;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+
+        .password-toggle:hover {
+            color: #333;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #0ea5e9;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .btn-primary {
+            background: #0ea5e9;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0284c7;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* Tables */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        table thead {
+            background: #f3f4f6;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        table th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #1e3c72;
+        }
+
+        table td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        table tr:hover {
+            background: #f9fafb;
+        }
+
+        /* Status badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-in-progress {
+            background: #bfdbfe;
+            color: #1e40af;
+        }
+
+        .badge-submitted {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-final {
+            background: #fcd34d;
+            color: #713f12;
+            font-weight: bold;
+        }
+
+        .badge-completed {
+            background: #dbeafe;
+            color: #0c4a6e;
+        }
+
+        .badge-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #1e3c72;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        /* Inspector search */
+        .search-input {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-results.active {
+            display: block;
+        }
+
+        .search-result-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            cursor: pointer;
+        }
+
+        .search-result-item:hover {
+            background: #f5f5f5;
+        }
+
+        .search-result-item:hover {
+            background: #f3f4f6;
+        }
+
+        /* Statistics */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #0ea5e9;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card h3 {
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1e3c72;
+        }
+
+        /* Loading & Messages */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #0c4a6e;
+            border: 1px solid #bfdbfe;
+        }
+
+        /* Premium Loader */
+        .pdf-loader-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .pdf-loader-overlay.active {
+            display: flex;
+        }
+
+        .pdf-loader-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 40px 60px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .pdf-loader-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #0ea5e9;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            animation: spin-loader 1s infinite cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .pdf-loader-text {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .pdf-loader-subtext {
+            font-size: 13px;
+            opacity: 0.7;
+            font-weight: 400;
+        }
+
+        @keyframes spin-loader {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="pdfLoader" class="pdf-loader-overlay">
+        <div class="pdf-loader-card">
+            <div class="pdf-loader-spinner"></div>
+            <div class="pdf-loader-text">Generating PDF Report</div>
+            <div class="pdf-loader-subtext">This may take a few seconds...</div>
+        </div>
+    </div>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2>Admin Panel</h2>
+            <nav>
+                <a class="nav-link active" onclick="switchSection('dashboard')">📊 Dashboard</a>
+                <a class="nav-link" onclick="switchSection('inspectors')">👥 Inspectors</a>
+                <a class="nav-link" onclick="switchSection('tasks')">📋 Tasks</a>
+                <a class="nav-link" onclick="switchSection('inspections')">🔍 Inspections</a>
+            </nav>
+            <div class="user-info">
+                <p><strong id="userName">Admin</strong></p>
+                <p id="userRole" style="color: #0ea5e9;">Administrator</p>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h1 id="pageTitle">Dashboard</h1>
+            </div>
+
+            <div class="content">
+                <!-- Dashboard Section -->
+                <div id="dashboard" class="section active">
+                    <div class="stats-grid" id="statsGrid"></div>
+                    <div class="card">
+                        <h2>Recent Inspections</h2>
+                        <div id="recentInspections"></div>
+                    </div>
+                </div>
+
+                <!-- Inspectors Section -->
+                <div id="inspectors" class="section">
+                    <div class="card">
+                        <h2>Manage Inspectors</h2>
+                        <button class="btn btn-primary" onclick="openInspectorModal()">+ Add Inspector</button>
+                        <div id="inspectorsList"></div>
+                    </div>
+                </div>
+
+                <!-- Tasks Section -->
+                <div id="tasks" class="section">
+                    <div class="card">
+                        <h2>Inspection Tasks</h2>
+                        <button class="btn btn-primary" onclick="openTaskModal()">+ Assign Task</button>
+                        <div id="tasksList"></div>
+                    </div>
+                </div>
+
+                <!-- Inspections Section -->
+                <div id="inspections" class="section">
+                    <div class="card">
+                        <h2>All Inspections</h2>
+                        <div id="inspectionsList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Inspector Modal -->
+    <div id="inspectorModal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeInspectorModal()">&times;</button>
+            <div class="modal-header">
+                <h2>Add Inspector</h2>
+            </div>
+            <form id="inspectorForm">
+                <div class="form-group">
+                    <label>Inspector Name *</label>
+                    <input type="text" id="inspectorName" required>
+                </div>
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" id="inspectorEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Password *</label>
+                    <div class="password-container">
+                        <input type="password" id="inspectorPassword" required>
+                        <span class="password-toggle"
+                            onclick="togglePasswordVisibility('inspectorPassword', this)">Show</span>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary">Create Inspector</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeInspectorModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Task Modal -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeTaskModal()">&times;</button>
+            <div class="modal-header">
+                <h2>Assign Inspection Task</h2>
+            </div>
+            <form id="taskForm" onsubmit="createTask(event)">
+                <div class="form-group">
+                    <label>Serial No *</label>
+                    <input type="text" id="serialNo" required>
+                </div>
+                <div class="form-group">
+                    <label>Client Name *</label>
+                    <input type="text" id="clientName" required>
+                </div>
+                <div class="form-group">
+                    <label>Client Email</label>
+                    <input type="email" id="clientEmail">
+                </div>
+                <div class="form-group">
+                    <label>Client Phone</label>
+                    <input type="tel" id="clientPhone">
+                </div>
+                <div class="form-group">
+                    <label>Property Address *</label>
+                    <textarea id="propertyAddress" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="taskDescription"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Assign to Inspector *</label>
+                    <input type="text" id="inspectorSearch" placeholder="Search inspector by name or email..." required>
+                    <div class="search-results" id="inspectorSearchResults"></div>
+                    <input type="hidden" id="selectedInspectorId">
+                </div>
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeTaskModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Version: 2.0.0 - Added editTask function
+        const API_BASE = 'http://localhost:5001/api';
+        let authToken = localStorage.getItem('adminToken');
+        let currentUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
+
+        // Check authentication
+        if (!authToken || currentUser.role !== 'ADMIN') {
+            window.location.href = '/';
+            throw new Error('Unauthorized');
+        }
+
+        // Display current user
+        document.getElementById('userName').textContent = currentUser.name;
+
+        // Navigation
+        function switchSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            // Show selected section
+            document.getElementById(section).classList.add('active');
+            // Update nav links
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            event.target.classList.add('active');
+            // Update title
+            const titles = {
+                dashboard: 'Dashboard',
+                inspectors: 'Manage Inspectors',
+                tasks: 'Inspection Tasks',
+                inspections: 'All Inspections'
+            };
+            document.getElementById('pageTitle').textContent = titles[section];
+
+            // Load data
+            if (section === 'dashboard') loadDashboard();
+            if (section === 'inspectors') loadInspectors();
+            if (section === 'tasks') loadTasks();
+            if (section === 'inspections') loadInspections();
+        }
+
+        // Modals
+        function openInspectorModal() {
+            const modal = document.getElementById('inspectorModal');
+            const form = document.getElementById('inspectorForm');
+
+            // Ensure form is in "create" mode
+            form.reset();
+            modal.querySelector('h2').textContent = 'Add Inspector';
+            const passwordInput = document.getElementById('inspectorPassword');
+            passwordInput.placeholder = '';
+            passwordInput.required = true;
+            passwordInput.type = 'password'; // Reset type in case it was 'text'
+            modal.querySelector('.password-toggle').textContent = 'Show'; // Reset toggle text
+
+            const submitButton = form.querySelector('button[type="submit"]');
+            submitButton.textContent = 'Create Inspector';
+
+            form.onsubmit = createInspector; // Set for creation
+
+            modal.classList.add('active');
+        }
+
+        function closeInspectorModal() {
+            document.getElementById('inspectorModal').classList.remove('active');
+        }
+
+        async function editInspector(id) {
+            try {
+                const res = await apiCall('GET', `/inspectors/${id}`);
+                if (!res.success) throw new Error(res.message);
+                const inspector = res.data;
+
+                const modal = document.getElementById('inspectorModal');
+                const form = document.getElementById('inspectorForm');
+
+                // Change modal for 'edit' mode
+                modal.querySelector('h2').textContent = 'Edit Inspector';
+
+                // Populate form
+                document.getElementById('inspectorName').value = inspector.name;
+                document.getElementById('inspectorEmail').value = inspector.email;
+                const passwordInput = document.getElementById('inspectorPassword');
+                passwordInput.value = '';
+                passwordInput.placeholder = 'Leave blank to keep current password';
+                passwordInput.required = false;
+                passwordInput.type = 'password'; // Reset type in case it was 'text'
+                modal.querySelector('.password-toggle').textContent = 'Show'; // Reset toggle text
+
+                // Change form submission
+                form.querySelector('button[type="submit"]').textContent = 'Save Changes';
+                form.onsubmit = async (event) => {
+                    event.preventDefault();
+                    await updateInspector(id);
+                };
+
+                modal.classList.add('active');
+            } catch (error) {
+                alert(`Error loading inspector data: ${error.message}`);
+            }
+        }
+
+        async function updateInspector(id) {
+            try {
+                const data = {
+                    name: document.getElementById('inspectorName').value,
+                    email: document.getElementById('inspectorEmail').value,
+                };
+                const password = document.getElementById('inspectorPassword').value;
+                if (password && password.trim() !== '') {
+                    data.password = password;
+                }
+
+                await apiCall('PUT', `/inspectors/${id}`, data);
+                alert('Inspector updated successfully!');
+                closeInspectorModal();
+                loadInspectors();
+            } catch (error) {
+                alert(`Error updating inspector: ${error.message}`);
+            }
+        }
+
+        function openTaskModal() {
+            document.getElementById('taskModal').classList.add('active');
+            document.getElementById('taskForm').reset();
+        }
+
+        function closeTaskModal() {
+            const modal = document.getElementById('taskModal');
+            modal.classList.remove('active');
+            // Clear any edit state
+            delete modal.dataset.editId;
+            document.getElementById('taskForm').reset();
+            document.getElementById('selectedInspectorId').value = '';
+        }
+
+        // API Calls
+        async function apiCall(method, endpoint, data = null) {
+            console.log(`📡 API Call: ${method} ${API_BASE}${endpoint}`, { authToken: authToken ? '***' : 'missing' });
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                }
+            };
+            if (data) options.body = JSON.stringify(data);
+
+            const response = await fetch(`${API_BASE}${endpoint}`, options);
+            console.log(`📊 Response status: ${response.status}`);
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`❌ API Error: ${response.status} - ${errorText}`);
+                if (response.status === 401) {
+                    localStorage.clear();
+                    window.location.href = '/';
+                }
+                try {
+                    const errorJson = JSON.parse(errorText);
+                    throw new Error(errorJson.message || `API error: ${response.statusText}`);
+                } catch (e) {
+                    throw new Error(`API error: ${response.statusText}`);
+                }
+            }
+            return response.json();
+        }
+
+        // Dashboard
+        async function loadDashboard() {
+            try {
+                const inspectors = await apiCall('GET', '/inspectors');
+                const tasks = await apiCall('GET', '/tasks');
+                const inspections = await apiCall('GET', '/inspections');
+
+                const stats = `
+                    <div class="stat-card">
+                        <h3>Total Inspectors</h3>
+                        <div class="value">${inspectors.data.length}</div>
+                    </div>
+                    <div class="stat-card" style="border-left-color: #10b981;">
+                        <h3>Active Tasks</h3>
+                        <div class="value">${tasks.data.filter(t => t.status === 'PENDING').length}</div>
+                    </div>
+                    <div class="stat-card" style="border-left-color: #f59e0b;">
+                        <h3>Pending Inspections</h3>
+                        <div class="value">${inspections.data.filter(i => i.status === 'IN_PROGRESS').length}</div>
+                    </div>
+                    <div class="stat-card" style="border-left-color: #8b5cf6;">
+                        <h3>Submitted Reports</h3>
+                        <div class="value">${inspections.data.filter(i => i.status === 'SUBMITTED').length}</div>
+                    </div>
+                `;
+                document.getElementById('statsGrid').innerHTML = stats;
+
+                const recentInspections = inspections.data.slice(0, 5).map(i => {
+                    const canGeneratePDF = ['SUBMITTED', 'FINAL', 'REPORT_GENERATED', 'COMPLETED'].includes(i.status);
+                    return `
+                        <tr>
+                            <td>${i.inspectionNumber}</td>
+                            <td>${i.task?.clientName || 'N/A'}</td>
+                            <td>${i.performedBy?.name || 'N/A'}</td>
+                            <td><span class="badge badge-${i.status.toLowerCase()}">${i.status}</span></td>
+                            <td>
+                                ${canGeneratePDF ? `
+                                    <button class="btn btn-success" onclick="generatePDF('${i.id}')">Generate PDF</button>
+                                ` : 'N/A'}
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                document.getElementById('recentInspections').innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Inspection #</th>
+                                <th>Client</th>
+                                <th>Inspector</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>${recentInspections}</tbody>
+                    </table>
+                `;
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                document.getElementById('statsGrid').innerHTML = '<div class="alert alert-error">Failed to load dashboard</div>';
+            }
+        }
+
+        // Inspectors
+        async function loadInspectors() {
+            try {
+                console.log('📥 Loading inspectors...');
+                // Show loading state
+                document.getElementById('inspectorsList').innerHTML = '<div style="padding: 20px; text-align: center;">⏳ Loading...</div>';
+
+                const res = await apiCall('GET', '/inspectors');
+                console.log('✅ Inspectors loaded:', res.data);
+
+                if (!res.data || res.data.length === 0) {
+                    document.getElementById('inspectorsList').innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No inspectors found</div>';
+                    return;
+                }
+
+                const html = res.data.map(inspector => `
+                    <tr>
+                        <td>${inspector.name}</td>
+                        <td>${inspector.email}</td>
+                        <td>${inspector._count.assignedTasks}</td>
+                        <td>${new Date(inspector.createdAt).toLocaleDateString()}</td>
+                        <td>
+                            <button class="btn btn-secondary" onclick="editInspector('${inspector.id}')">Edit</button>
+                            <button class="btn btn-danger" onclick="deleteInspector('${inspector.id}')">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                const table = `
+                    <div style="margin-top: 20px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Assigned Tasks</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>${html}</tbody>
+                        </table>
+                    </div>
+                `;
+                document.getElementById('inspectorsList').innerHTML = table;
+                console.log('✅ Inspectors table rendered');
+
+            } catch (error) {
+                console.error('❌ Error loading inspectors:', error);
+                document.getElementById('inspectorsList').innerHTML = '<div class="alert alert-error">Failed to load inspectors: ' + error.message + '</div>';
+            }
+        }
+
+        // Create Inspector
+        async function createInspector(e) {
+            e.preventDefault();
+            e.preventDefault();
+            try {
+                const data = {
+                    name: document.getElementById('inspectorName').value,
+                    email: document.getElementById('inspectorEmail').value,
+                    password: document.getElementById('inspectorPassword').value
+                };
+
+                const res = await apiCall('POST', '/inspectors', data);
+                alert('Inspector created successfully!');
+                closeInspectorModal();
+                loadInspectors();
+            } catch (error) {
+                alert('Error creating inspector: ' + error.message);
+            }
+        }
+
+        // Delete Inspector
+        async function deleteInspector(id) {
+            if (!confirm('Are you sure?')) return;
+            try {
+                await apiCall('DELETE', `/inspectors/${id}`);
+                alert('Inspector deleted');
+                loadInspectors();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Tasks
+        async function loadTasks() {
+            try {
+                console.log('📥 Loading tasks...');
+                // Show loading state
+                document.getElementById('tasksList').innerHTML = '<div style="padding: 20px; text-align: center;">⏳ Loading...</div>';
+
+                const res = await apiCall('GET', '/tasks');
+                console.log('✅ Tasks loaded:', res.data);
+
+                if (!res.data || res.data.length === 0) {
+                    document.getElementById('tasksList').innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No tasks found</div>';
+                    return;
+                }
+
+                const html = res.data.map(task => `
+                    <tr>
+                        <td>${task.propertyId}</td>
+                        <td>${task.clientName}</td>
+                        <td>${task.assignedTo.name}</td>
+                        <td><span class="badge badge-${task.status.toLowerCase()}">${task.status}</span></td>
+                        <td>${task.inspections.length} reports</td>
+                        <td>
+                            <button class="btn btn-secondary" onclick="editTask('${task.id}')">Edit</button>
+                            <button class="btn btn-danger" onclick="deleteTask('${task.id}')">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                document.getElementById('tasksList').innerHTML = `
+                    <div style="margin-top: 20px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Serial No</th>
+                                    <th>Client</th>
+                                    <th>Assigned To</th>
+                                    <th>Status</th>
+                                    <th>Reports</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>${html}</tbody>
+                        </table>
+                    </div>
+                `;
+                console.log('✅ Tasks table rendered');
+            } catch (error) {
+                console.error('❌ Error loading tasks:', error);
+                document.getElementById('tasksList').innerHTML = '<div class="alert alert-error">Failed to load tasks: ' + error.message + '</div>';
+            }
+        }
+
+        // Create or Update Task
+        async function createTask(e) {
+            e.preventDefault();
+            const inspectorId = document.getElementById('selectedInspectorId').value;
+            if (!inspectorId) {
+                alert('Please select an inspector');
+                return;
+            }
+
+            try {
+                const data = {
+                    propertyId: document.getElementById('serialNo').value,
+                    clientName: document.getElementById('clientName').value,
+                    clientEmail: document.getElementById('clientEmail').value,
+                    clientPhone: document.getElementById('clientPhone').value,
+                    propertyAddress: document.getElementById('propertyAddress').value,
+                    description: document.getElementById('taskDescription').value,
+                    assignedToId: inspectorId
+                };
+
+                // Check if we're editing an existing task
+                const editId = document.getElementById('taskModal').dataset.editId;
+                if (editId) {
+                    await apiCall('PUT', `/tasks/${editId}`, data);
+                    alert('Task updated successfully!');
+                    delete document.getElementById('taskModal').dataset.editId;
+                } else {
+                    await apiCall('POST', '/tasks', data);
+                    alert('Task assigned successfully!');
+                }
+
+                closeTaskModal();
+                loadTasks();
+            } catch (error) {
+                console.error('Task save error:', error);
+                if (error.message.includes('Admin user not found')) {
+                    alert('Session expired. Please logout and login again.');
+                    logout();
+                } else {
+                    alert('Error saving task: ' + error.message);
+                }
+            }
+        }
+
+        // Delete Task
+        async function deleteTask(id) {
+            if (!confirm('Delete this task?')) return;
+            try {
+                await apiCall('DELETE', `/tasks/${id}`);
+                alert('Task deleted');
+                loadTasks();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Edit Task (placeholder - opens modal with pre-filled data)
+        async function editTask(id) {
+            try {
+                const res = await apiCall('GET', `/tasks/${id}`);
+                const task = res.data;
+
+                // Open the task modal and pre-fill with existing data
+                document.getElementById('taskModal').classList.add('active');
+                document.getElementById('serialNo').value = task.propertyId || '';
+                document.getElementById('clientName').value = task.clientName || '';
+                document.getElementById('clientEmail').value = task.clientEmail || '';
+                document.getElementById('clientPhone').value = task.clientPhone || '';
+                document.getElementById('propertyAddress').value = task.propertyAddress || '';
+                document.getElementById('taskDescription').value = task.description || '';
+
+                // Store the task ID for update
+                document.getElementById('taskModal').dataset.editId = id;
+
+                // If there's an assigned inspector, pre-select them
+                if (task.assignedToId) {
+                    document.getElementById('selectedInspectorId').value = task.assignedToId;
+                    document.getElementById('inspectorSearch').value = task.assignedTo?.name || '';
+                }
+            } catch (error) {
+                alert('Error loading task: ' + error.message);
+            }
+        }
+
+        // Inspector Search
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('inspectorSearch')?.addEventListener('input', async (e) => {
+                const q = e.target.value;
+                console.log('🔍 Searching inspectors:', q);
+                if (q.length < 2) {
+                    document.getElementById('inspectorSearchResults').classList.remove('active');
+                    return;
+                }
+
+                try {
+                    const res = await apiCall('GET', `/inspectors/search?q=${q}`);
+                    console.log('✅ Search results:', res.data);
+                    const html = res.data.map(insp => `
+                        <div class="search-result-item" onclick="selectInspector('${insp.id}', '${insp.name}')">
+                            <strong>${insp.name}</strong><br>
+                            <small>${insp.email}</small>
+                        </div>
+                    `).join('');
+
+                    document.getElementById('inspectorSearchResults').innerHTML = html;
+                    document.getElementById('inspectorSearchResults').classList.add('active');
+                } catch (error) {
+                    console.error('❌ Search error:', error);
+                }
+            });
+        });
+
+        function selectInspector(id, name) {
+            document.getElementById('inspectorSearch').value = name;
+            document.getElementById('selectedInspectorId').value = id;
+            document.getElementById('inspectorSearchResults').classList.remove('active');
+        }
+
+        // Inspections
+        async function loadInspections() {
+            try {
+                console.log('📥 Loading inspections...');
+                // Show loading state
+                document.getElementById('inspectionsList').innerHTML = '<div style="padding: 20px; text-align: center;">⏳ Loading...</div>';
+
+                const res = await apiCall('GET', '/inspections');
+                console.log('✅ Inspections loaded:', res.data);
+
+                if (!res.data || res.data.length === 0) {
+                    document.getElementById('inspectionsList').innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No inspections found</div>';
+                    return;
+                }
+
+                const html = res.data.map(i => {
+                    const canGeneratePDF = ['SUBMITTED', 'FINAL', 'REPORT_GENERATED', 'COMPLETED'].includes(i.status);
+                    const statusText = canGeneratePDF ? 'Ready for PDF' : `Waiting (${i.status})`;
+                    return `
+                    <tr>
+                        <td>${i.inspectionNumber}</td>
+                        <td>${i.task?.clientName || 'N/A'}</td>
+                        <td>${i.performedBy?.name || 'N/A'}</td>
+                        <td><span class="badge badge-${i.status.toLowerCase()}">${i.status}</span></td>
+                        <td>${i.overallScore !== null ? i.overallScore : 'N/A'}</td>
+                        <td>
+                            ${canGeneratePDF ? `<button class="btn btn-success" onclick="generatePDF('${i.id}')">📄 Generate PDF</button>` : `<span style="color: #999;">${statusText}</span>`}
+                            <button class="btn btn-secondary" onclick="viewInspection('${i.id}')">👁️ View</button>
+                        </td>
+                    </tr>
+                    `;
+                }).join('');
+
+                document.getElementById('inspectionsList').innerHTML = `
+                    <div style="margin-top: 20px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Inspection #</th>
+                                    <th>Client</th>
+                                    <th>Inspector</th>
+                                    <th>Status</th>
+                                    <th>Score</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>${html}</tbody>
+                        </table>
+                    </div>
+                `;
+                console.log('✅ Inspections table rendered');
+            } catch (error) {
+                console.error('❌ Error loading inspections:', error);
+                document.getElementById('inspectionsList').innerHTML = '<div class="alert alert-error">Failed to load inspections: ' + error.message + '</div>';
+            }
+        }
+
+        // Generate PDF
+        async function generatePDF(inspectionId) {
+            const loader = document.getElementById('pdfLoader');
+            try {
+                // Show the loader
+                loader.classList.add('active');
+
+                // Call the backend API to generate the PDF
+                // We use fetch directly to handle blob for download
+                const response = await fetch(`${API_BASE}/inspections/${inspectionId}/report`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to generate PDF');
+
+                const blob = await response.blob();
+
+                // Hide loader
+                loader.classList.remove('active');
+
+                // Create download link
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Inspection_Report_${inspectionId}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                console.log('✅ PDF downloaded successfully');
+            } catch (error) {
+                // Hide loader on error
+                loader.classList.remove('active');
+                alert('Error generating PDF: ' + error.message);
+            }
+        }
+
+        function togglePasswordVisibility(id, btn) {
+            const input = document.getElementById(id);
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.textContent = 'Hide';
+            } else {
+                input.type = 'password';
+                btn.textContent = 'Show';
+            }
+        }
+
+        // View Inspection Report Modal
+        async function viewInspection(inspectionId) {
+            try {
+                const res = await apiCall('GET', `/inspections/${inspectionId}`);
+                if (!res.success) throw new Error(res.message);
+                const inspection = res.data;
+                const task = inspection.task || {};
+                const metadata = inspection.inspectionJson?.metadata || {};
+
+                // Prioritize Task data over Metadata (which might be stale/unknown)
+                const clientName = task.clientName || metadata.client_name || 'Unknown Client';
+                const propertyAddress = task.propertyAddress || metadata.property_address || 'N/A';
+                const inspectorName = inspection.performedBy?.name || metadata.technician_name || 'Unknown';
+                const overallScore = inspection.overallScore !== null ? `${inspection.overallScore}%` : 'N/A';
+
+                const sev = inspection.severityCounts || { critical: 0, major: 0, minor: 0, cosmetic: 0 };
+
+                // Create Modal HTML dynamically
+                const modalHtml = `
+                <div id="reportModal" class="modal active" style="display: flex;">
+                    <div class="modal-content" style="max-width: 600px;">
+                        <button class="close-btn" onclick="document.getElementById('reportModal').remove()">&times;</button>
+                        <div class="modal-header">
+                            <h2 style="color: #1e3c72; margin-bottom: 5px;">Report: ${inspection.inspectionNumber || 'DRAFT'}</h2>
+                            <span class="badge badge-${inspection.status.toLowerCase()}">${inspection.status}</span>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                            <div>
+                                <label style="display:block; color:#666; font-size:12px;">Client Name</label>
+                                <div style="font-weight:600;">${clientName}</div>
+                            </div>
+                            <div>
+                                <label style="display:block; color:#666; font-size:12px;">Property Address</label>
+                                <div style="font-weight:600;">${propertyAddress}</div>
+                            </div>
+                            <div>
+                                <label style="display:block; color:#666; font-size:12px;">Inspector</label>
+                                <div style="font-weight:600;">${inspectorName}</div>
+                            </div>
+                            <div>
+                                <label style="display:block; color:#666; font-size:12px;">Overall Score</label>
+                                <div style="font-weight:bold; font-size:18px; color: ${inspection.overallScore >= 80 ? '#10b981' : '#f59e0b'}">${overallScore}</div>
+                            </div>
+                        </div>
+
+                        <h3 style="border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 10px; color: #1e3c72;">Severity Summary</h3>
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center;">
+                            <div style="background: #fee2e2; padding: 10px; border-radius: 5px;">
+                                <div style="font-size: 20px; font-weight: bold; color: #991b1b;">${sev.critical || 0}</div>
+                                <div style="font-size: 11px; text-transform: uppercase;">Critical</div>
+                            </div>
+                            <div style="background: #fef3c7; padding: 10px; border-radius: 5px;">
+                                <div style="font-size: 20px; font-weight: bold; color: #92400e;">${sev.major || 0}</div>
+                                <div style="font-size: 11px; text-transform: uppercase;">Major</div>
+                            </div>
+                            <div style="background: #dbeafe; padding: 10px; border-radius: 5px;">
+                                <div style="font-size: 20px; font-weight: bold; color: #1e40af;">${sev.minor || 0}</div>
+                                <div style="font-size: 11px; text-transform: uppercase;">Minor</div>
+                            </div>
+                             <div style="background: #f3f4f6; padding: 10px; border-radius: 5px;">
+                                <div style="font-size: 20px; font-weight: bold; color: #374151;">${sev.cosmetic || 0}</div>
+                                <div style="font-size: 11px; text-transform: uppercase;">Cosmetic</div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 25px; text-align: right;">
+                             <button class="btn btn-secondary" onclick="document.getElementById('reportModal').remove()">Close</button>
+                             ${inspection.status === 'SUBMITTED' || inspection.status === 'FINAL' ?
+                        `<button class="btn btn-success" onclick="generatePDF('${inspection.id}')">Download PDF</button>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+                // Append to body
+                const oldModal = document.getElementById('reportModal');
+                if (oldModal) oldModal.remove();
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            } catch (error) {
+                console.error(error);
+                alert('Error loading report details: ' + error.message);
+            }
+        }
+
+        // Logout
+        function logout() {
+            if (confirm('Logout?')) {
+                localStorage.clear();
+                window.location.href = '/';
+            }
+        }
+
+        // Load dashboard on page load
+        loadDashboard();
+    </script>
+</body>
+
+</html>

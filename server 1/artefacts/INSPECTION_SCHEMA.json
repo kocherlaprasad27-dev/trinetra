@@ -1,0 +1,187 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Inspection",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "inspection_id",
+    "metadata",
+    "rooms",
+    "derived",
+    "audit"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "enum": ["1.0"]
+    },
+    "inspection_id": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["property_id", "inspection_date", "technician"],
+      "properties": {
+        "property_id": {
+          "type": "string"
+        },
+        "property_type": {
+          "type": "string"
+        },
+        "property_address": {
+          "type": "string"
+        },
+        "client_name": {
+          "type": ["string", "null"]
+        },
+        "client_email": {
+          "type": ["string", "null"]
+        },
+        "client_phone": {
+          "type": ["string", "null"]
+        },
+        "inspection_date": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "technician": {
+          "type": "object",
+          "required": ["id", "name"],
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            }
+          }
+        },
+        "notes": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "rooms": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["room_id", "room_type", "room_label", "scored", "items"],
+        "properties": {
+          "room_id": {
+            "type": "string"
+          },
+          "room_type": {
+            "type": "string"
+          },
+          "room_label": {
+            "type": "string"
+          },
+          "scored": {
+            "type": "boolean"
+          },
+          "length": {
+            "type": ["string", "number", "null"]
+          },
+          "width": {
+            "type": ["string", "number", "null"]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["item_id", "label", "category", "status", "photos"],
+              "properties": {
+                "item_id": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "category": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": ["string", "null"],
+                  "enum": ["PASS", "MINOR", "MAJOR", "CRITICAL", "NA", null]
+                },
+                "remarks": {
+                  "type": ["string", "null"]
+                },
+                "photos": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["photo_id"],
+                    "properties": {
+                      "photo_id": {
+                        "type": "string"
+                      },
+                      "local_ref": {
+                        "type": ["string", "null"]
+                      },
+                      "server_url": {
+                        "type": ["string", "null"]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "derived": {
+      "type": "object",
+      "required": ["room_scores", "severity_counts", "overall_score"],
+      "properties": {
+        "room_scores": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "severity_counts": {
+          "type": "object",
+          "required": ["critical", "major", "minor", "cosmetic"],
+          "properties": {
+            "critical": {
+              "type": "number"
+            },
+            "major": {
+              "type": "number"
+            },
+            "minor": {
+              "type": "number"
+            },
+            "cosmetic": {
+              "type": "number"
+            }
+          }
+        },
+        "overall_score": {
+          "type": ["number", "null"]
+        }
+      }
+    },
+    "audit": {
+      "type": "object",
+      "required": ["status", "created_at"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["DRAFT", "COMPLETED", "SUBMITTED", "REPORT_GENERATED"]
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "last_modified_at": {
+          "type": ["string", "null"]
+        },
+        "submitted_at": {
+          "type": ["string", "null"]
+        }
+      }
+    }
+  }
+}

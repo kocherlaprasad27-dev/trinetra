@@ -1,0 +1,296 @@
+{
+	"info": {
+		"_postman_id": "c76f414e-1234-4567-8901-abcdef123456",
+		"name": "House Inspection API",
+		"description": "Collection for testing House Inspection Backend workflow",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Auth",
+			"item": [
+				{
+					"name": "Login Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"adminToken\", jsonData.token);",
+									"console.log(\"Admin Token set\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@example.com\",\n    \"password\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login Inspector",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"inspectorToken\", jsonData.token);",
+									"console.log(\"Inspector Token set\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"inspector@example.com\",\n    \"password\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Metadata",
+			"item": [
+				{
+					"name": "Get Categories",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/metadata/categories",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"metadata",
+								"categories"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Inspections",
+			"item": [
+				{
+					"name": "Create Inspection (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"inspectionId\", jsonData.id);",
+									"console.log(\"Inspection ID set: \" + jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"inspectorId\": \"USR-INSPECTOR\",\n    \"technician\": \"John Doe\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/inspections/create",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"inspections",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Assigned Inspections (Inspector)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{inspectorToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/inspections/assigned",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"inspections",
+								"assigned"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Submit Inspection (Inspector)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{inspectorToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"schema_version\": \"1.0\",\n    \"inspection_id\": \"{{inspectionId}}\",\n    \"metadata\": {\n        \"property_id\": \"P-100\",\n        \"property_type\": \"Apartment\",\n        \"client_name\": \"Jane Smith\",\n        \"inspection_date\": \"2025-12-20\",\n        \"technician\": \"John Doe\"\n    },\n    \"rooms\": [\n        {\n            \"room_id\": \"living_room\",\n            \"room_type\": \"LIVING_ROOM\",\n            \"room_label\": \"Living Room\",\n            \"scored\": true,\n            \"items\": [\n                { \"name\": \"Flooring\", \"status\": \"PASS\" },\n                { \"name\": \"Walls\", \"status\": \"MINOR\", \"comments\": \"Small scratch near door\" }\n            ]\n        }\n    ],\n    \"derived\": {\n        \"room_scores\": {},\n        \"severity_counts\": { \"critical\": 0, \"major\": 0, \"minor\": 0, \"cosmetic\": 0 },\n        \"overall_score\": null\n    },\n    \"audit\": {\n        \"status\": \"DRAFT\",\n        \"created_at\": \"2025-12-20T10:00:00Z\",\n        \"last_modified_at\": \"2025-12-20T11:00:00Z\",\n        \"submitted_at\": null\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/inspections/{{inspectionId}}/submit",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"inspections",
+								"{{inspectionId}}",
+								"submit"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Report (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/inspections/{{inspectionId}}/report",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"inspections",
+								"{{inspectionId}}",
+								"report"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5000/api"
+		},
+		{
+			"key": "adminToken",
+			"value": ""
+		},
+		{
+			"key": "inspectorToken",
+			"value": ""
+		},
+		{
+			"key": "inspectionId",
+			"value": ""
+		}
+	]
+}

@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#473c39">
+    <title>Inspector Dashboard - Inspection App</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="assets/images/icon-192.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .app-header {
+            background: #1e3c72;
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .app-header h1 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+
+        .header-right {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .user-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            padding: 10px 20px;
+            background: #ef4444;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            color: #1e3c72;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab-btn {
+            padding: 15px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            margin-bottom: -2px;
+        }
+
+        .tab-btn:hover {
+            color: #1e3c72;
+        }
+
+        .tab-btn.active {
+            color: #0ea5e9;
+            border-bottom-color: #0ea5e9;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Tasks List */
+        .task-card {
+            background: #f9fafb;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        .task-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: #0ea5e9;
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+
+        .task-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e3c72;
+        }
+
+        .task-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+
+        .info-item label {
+            color: #666;
+            font-weight: 500;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .info-item {
+            color: #333;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-in-progress {
+            background: #bfdbfe;
+            color: #1e40af;
+        }
+
+        .badge-submitted {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-final {
+            background: #fcd34d;
+            color: #713f12;
+            font-weight: bold;
+        }
+
+        .badge-completed {
+            background: #dbeafe;
+            color: #0c4a6e;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .btn-primary {
+            background: #0ea5e9;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0284c7;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        /* Status Indicator */
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-dot.pending {
+            background: #fbbf24;
+        }
+
+        .status-dot.in-progress {
+            background: #60a5fa;
+        }
+
+        .status-dot.submitted {
+            background: #34d399;
+        }
+
+        .status-dot.locked {
+            background: #f87171;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .empty-state h3 {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        /* Alert */
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #0c4a6e;
+            border: 1px solid #bfdbfe;
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        /* Inspection Detail Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #1e3c72;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        /* Progress */
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0ea5e9;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <div class="app-header">
+        <div class="container">
+            <h1>🔍 Inspector Dashboard</h1>
+            <div class="header-right">
+                <div class="user-info">
+                    <div class="user-badge" id="userBadge">Inspector</div>
+                    <button class="logout-btn" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="content">
+            <!-- Tabs -->
+            <div class="card">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(event, 'assigned-tasks')">📋 Assigned
+                        Tasks</button>
+                    <button class="tab-btn" onclick="switchTab(event, 'in-progress')">⏳ In Progress</button>
+                    <button class="tab-btn" onclick="switchTab(event, 'submitted')">✅ Submitted</button>
+                </div>
+
+                <!-- Assigned Tasks Tab -->
+                <div id="assigned-tasks" class="tab-content active">
+                    <h2>Assigned Inspection Tasks</h2>
+                    <div id="assignedTasksList"></div>
+                </div>
+
+                <!-- In Progress Tab -->
+                <div id="in-progress" class="tab-content">
+                    <h2>In Progress Inspections</h2>
+                    <div id="inProgressList"></div>
+                </div>
+
+                <!-- Submitted Tab -->
+                <div id="submitted" class="tab-content">
+                    <h2>Submitted Reports</h2>
+                    <p class="alert alert-info" style="margin-top: 10px;">
+                        ✅ After submission, your inspection report is locked for editing. Admin will review and may
+                        request changes.
+                    </p>
+                    <div id="submittedList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inspection Detail Modal -->
+    <div id="inspectionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Inspection Report</h2>
+                <button class="close-btn" onclick="closeInspectionModal()">&times;</button>
+            </div>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5001/api';
+        let authToken = localStorage.getItem('inspectorToken');
+        let currentUser = JSON.parse(localStorage.getItem('inspectorUser') || '{}');
+
+        // Check authentication
+        if (!authToken || currentUser.role !== 'INSPECTOR') {
+            window.location.href = '/';
+            throw new Error('Unauthorized');
+        }
+
+        // Display current user
+        document.getElementById('userBadge').textContent = `👤 ${currentUser.name}`;
+
+        // Tab switching
+        function switchTab(e, tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            e.target.classList.add('active');
+
+            if (tabName === 'assigned-tasks') loadAssignedTasks();
+            if (tabName === 'in-progress') loadInProgress();
+            if (tabName === 'submitted') loadSubmitted();
+        }
+
+        // API Call
+        async function apiCall(method, endpoint, data = null) {
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                }
+            };
+            if (data) options.body = JSON.stringify(data);
+
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, options);
+                const responseData = await response.json();
+
+                if (!response.ok) {
+                    console.error(`❌ API Error [${endpoint}]:`, response.status, responseData);
+                    if (response.status === 401) {
+                        console.log('🔓 Token expired, logging out');
+                        localStorage.clear();
+                        window.location.href = '/';
+                    }
+                    throw new Error(responseData.message || responseData.error || `API error: ${response.statusText}`);
+                }
+                return responseData;
+            } catch (error) {
+                console.error(`❌ Fetch error [${endpoint}]:`, error);
+                throw error;
+            }
+        }
+
+        // Load Assigned Tasks (PENDING status)
+        async function loadAssignedTasks() {
+            try {
+                console.log('📥 Loading assigned tasks...');
+                const res = await apiCall('GET', '/tasks');
+                console.log('✅ Tasks loaded:', res);
+
+                if (!res.data || res.data.length === 0) {
+                    document.getElementById('assignedTasksList').innerHTML = `
+                        <div class="empty-state">
+                            <h3>No pending tasks</h3>
+                            <p>You don't have any unstarted inspection tasks yet.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const tasks = res.data.filter(t => t.status === 'PENDING' && t.inspections.length === 0);
+
+                if (tasks.length === 0) {
+                    document.getElementById('assignedTasksList').innerHTML = `
+                        <div class="empty-state">
+                            <h3>No pending tasks</h3>
+                            <p>You don't have any unstarted inspection tasks yet.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const html = tasks.map(task => `
+                    <div class="task-card">
+                        <div class="task-header">
+                            <div class="task-title">${task.clientName}</div>
+                            <span class="badge badge-pending">PENDING</span>
+                        </div>
+                        <div class="task-info">
+                            <div class="info-item">
+                                <label>Serial No</label>
+                                <div>${task.propertyId}</div>
+                            </div>
+                            <div class="info-item">
+                                <label>Address</label>
+                                <div>${task.propertyAddress}</div>
+                            </div>
+                            <div class="info-item">
+                                <label>Email</label>
+                                <div>${task.clientEmail || 'N/A'}</div>
+                            </div>
+                            <div class="info-item">
+                                <label>Phone</label>
+                                <div>${task.clientPhone || 'N/A'}</div>
+                            </div>
+                        </div>
+                        ${task.description ? `<p style="color: #666; font-size: 14px;"><strong>Notes:</strong> ${task.description}</p>` : ''}
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="startInspection('${task.id}')">Start Inspection</button>
+                            <button class="btn btn-secondary" onclick="viewTask('${task.id}')">View Details</button>
+                        </div>
+                    </div>
+                `).join('');
+
+                document.getElementById('assignedTasksList').innerHTML = html;
+            } catch (error) {
+                console.error('❌ Error loading assigned tasks:', error);
+                document.getElementById('assignedTasksList').innerHTML = `<div class="alert alert-error">❌ Failed to load tasks: ${error.message}</div>`;
+            }
+        }
+
+        // Load In Progress Inspections
+        async function loadInProgress() {
+            try {
+                const res = await apiCall('GET', '/inspections');
+                const inspections = res.data.filter(i => i.status === 'IN_PROGRESS');
+
+                if (inspections.length === 0) {
+                    document.getElementById('inProgressList').innerHTML = `
+                        <div class="empty-state">
+                            <h3>No in-progress inspections</h3>
+                            <p>Start an inspection from the Assigned Tasks tab to begin.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const html = inspections.map(insp => `
+                    <div class="task-card">
+                        <div class="task-header">
+                            <div class="task-title">${insp.task.clientName}</div>
+                            <span class="badge badge-in-progress">IN PROGRESS</span>
+                        </div>
+                        <div class="task-info">
+                            <div class="info-item">
+                                <label>Inspection #</label>
+                                <div>${insp.inspectionNumber}</div>
+                            </div>
+                            <div class="info-item">
+                                <label>Serial No</label>
+                                <div>${insp.task.propertyId}</div>
+                            </div>
+                            <div class="info-item">
+                                <label>Address</label>
+                                <div>${insp.task.propertyAddress}</div>
+                            </div>
+                        </div>
+                        <div class="alert alert-warning">
+                            ⚠️ You can continue editing this inspection until submission. Once submitted, it will be locked for review.
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="continueInspection('${insp.id}')">Continue Inspection</button>
+                            <button class="btn btn-success" onclick="submitInspection('${insp.id}')">Submit Report</button>
+                        </div>
+                    </div>
+                `).join('');
+
+                document.getElementById('inProgressList').innerHTML = html;
+            } catch (error) {
+                console.error('Error loading in-progress:', error);
+                document.getElementById('inProgressList').innerHTML = '<div class="alert alert-error">Failed to load inspections</div>';
+            }
+        }
+
+        // Load Submitted Inspections
+        async function loadSubmitted() {
+            try {
+                const res = await apiCall('GET', '/inspections');
+                const inspections = res.data.filter(i => i.status === 'SUBMITTED' || i.status === 'FINAL' || i.status === 'COMPLETED' || i.status === 'REJECTED');
+
+                if (inspections.length === 0) {
+                    document.getElementById('submittedList').innerHTML = `
+                        <div class="empty-state">
+                            <h3>No submitted reports</h3>
+                            <p>Once you submit an inspection, it will appear here for review.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const html = inspections.map(insp => `
+                    <div class="task-card">
+                        <div class="task-header">
+                            <div class="task-title">${insp.task.clientName}</div>
+                            <span class="badge badge-${insp.status.toLowerCase()}">${insp.status}</span>
+                        </div>
+                        <div class="task-info">
+                            <div class="info-item">
+                                <label>Inspection #</label>
+                                <div>${insp.inspectionNumber}</div>
+                            </div>
+                            <div class="info-item">
+                                <label>Overall Score</label>
+                                <div>${insp.overallScore ? insp.overallScore + '%' : 'Pending'}</div>
+                            </div>
+                            <div class="info-item">
+                                <label>Submitted Date</label>
+                                <div>${insp.submittedAt ? new Date(insp.submittedAt).toLocaleDateString() : 'N/A'}</div>
+                            </div>
+                            <div class="info-item">
+                                <label>Status</label>
+                                <div>
+                                    ${insp.status === 'SUBMITTED' ? '⏳ Still Editing - Can Add/Edit Details' : ''}
+                                    ${insp.status === 'FINAL' ? '📋 Ready for Review' : ''}
+                                    ${insp.status === 'COMPLETED' ? '✅ Approved' : ''}
+                                    ${insp.status === 'REJECTED' ? '❌ Rejected - Resubmit Required' : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-secondary" onclick="viewSubmittedInspection('${insp.id}')">View Report</button>
+                            ${insp.status === 'SUBMITTED' ? `<button class="btn btn-primary" onclick="markInspectionFinal('${insp.id}')">✅ Mark as Final</button>` : ''}
+                            ${insp.status === 'REJECTED' ? `<button class="btn btn-primary" onclick="resubmitInspection('${insp.id}')">Resubmit</button>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+
+                document.getElementById('submittedList').innerHTML = html;
+            } catch (error) {
+                console.error('Error loading submitted:', error);
+                document.getElementById('submittedList').innerHTML = '<div class="alert alert-error">Failed to load submitted inspections</div>';
+            }
+        }
+
+        // View Task Details
+        async function viewTask(taskId) {
+            try {
+                const res = await apiCall('GET', `/tasks/${taskId}`);
+                const task = res.data;
+
+                const modal = document.getElementById('inspectionModal');
+                document.getElementById('modalTitle').textContent = `Task Details: ${task.clientName}`;
+                document.getElementById('modalContent').innerHTML = `
+                    <div class="task-info">
+                        <div class="info-item">
+                            <label>Serial No</label>
+                            <div>${task.propertyId}</div>
+                        </div>
+                        <div class="info-item">
+                            <label>Client Name</label>
+                            <div>${task.clientName}</div>
+                        </div>
+                        <div class="info-item">
+                            <label>Email</label>
+                            <div>${task.clientEmail || 'N/A'}</div>
+                        </div>
+                        <div class="info-item">
+                            <label>Phone</label>
+                            <div>${task.clientPhone || 'N/A'}</div>
+                        </div>
+                        <div class="info-item">
+                            <label>Property Address</label>
+                            <div>${task.propertyAddress}</div>
+                        </div>
+                        <div class="info-item">
+                            <label>Status</label>
+                            <div><span class="badge badge-pending">${task.status}</span></div>
+                        </div>
+                    </div>
+                    ${task.description ? `
+                        <h3 style="margin-top: 20px; color: #1e3c72;">Description</h3>
+                        <p style="color: #666; margin-top: 10px;">${task.description}</p>
+                    ` : ''}
+                    <div class="btn-group" style="margin-top: 20px;">
+                        <button class="btn btn-primary" onclick="startInspection('${task.id}'); closeInspectionModal();">Start Inspection</button>
+                        <button class="btn btn-secondary" onclick="closeInspectionModal()">Close</button>
+                    </div>
+                `;
+                modal.classList.add('active');
+            } catch (error) {
+                alert('Error loading task: ' + error.message);
+            }
+        }
+
+        // Start Inspection
+        async function startInspection(taskId) {
+            try {
+                // Redirect to inspection form with task ID
+                window.location.href = `/app.html?taskId=${taskId}`;
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Continue Inspection
+        async function continueInspection(inspectionId) {
+            try {
+                window.location.href = `/app.html?inspectionId=${inspectionId}`;
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Submit Inspection
+        async function submitInspection(inspectionId) {
+            if (!confirm('Are you sure? Once submitted, you cannot make further changes without admin approval.')) return;
+
+            try {
+                // This would redirect to a submission page
+                window.location.href = `/inspection-submit.html?inspectionId=${inspectionId}`;
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // View submitted inspection
+        async function viewSubmittedInspection(inspectionId) {
+            try {
+                const res = await apiCall('GET', `/inspections/${inspectionId}`);
+                const insp = res.data;
+
+                const modal = document.getElementById('inspectionModal');
+                document.getElementById('modalTitle').textContent = `Report: ${insp.inspectionNumber}`;
+                document.getElementById('modalContent').innerHTML = `
+                    <div class="task-info">
+                        <div class="info-item">
+                            <label>Client Name</label>
+                            <div>${insp.inspectionJson?.metadata?.client_name || 'N/A'}</div>
+                        </div>
+                        <div class="info-item">
+                            <label>Property Address</label>
+                            <div>${insp.inspectionJson?.metadata?.property_address || 'N/A'}</div>
+                        </div>
+                        <div class="info-item">
+                            <label>Overall Score</label>
+                            <div><strong>${insp.overallScore}%</strong></div>
+                        </div>
+                        <div class="info-item">
+                            <label>Status</label>
+                            <div>${insp.status}</div>
+                        </div>
+                    </div>
+                    <h3 style="margin-top: 20px; color: #1e3c72;">Severity Summary</h3>
+                    <div class="task-info">
+                        <div class="info-item">
+                            <label>Critical</label>
+                            <div>${insp.severityCounts?.critical || 0}</div>
+                        </div>
+                        <div class="info-item">
+                            <label>Major</label>
+                            <div>${insp.severityCounts?.major || 0}</div>
+                        </div>
+                        <div class="info-item">
+                            <label>Minor</label>
+                            <div>${insp.severityCounts?.minor || 0}</div>
+                        </div>
+                        <div class="info-item">
+                            <label>Cosmetic</label>
+                            <div>${insp.severityCounts?.cosmetic || 0}</div>
+                        </div>
+                    </div>
+                    ${insp.status === 'REJECTED' ? `
+                        <p class="alert alert-warning" style="margin-top: 15px;">
+                            This inspection was rejected by admin. Please review feedback and resubmit.
+                        </p>
+                    ` : ''}
+                `;
+                modal.classList.add('active');
+            } catch (error) {
+                alert('Error loading inspection: ' + error.message);
+            }
+        }
+
+        // Mark inspection as FINAL
+        async function markInspectionFinal(inspectionId) {
+            if (!confirm('Mark this inspection as FINAL? Once marked, admin can generate PDF. You can still edit it after marking as final if needed.')) {
+                return;
+            }
+
+            try {
+                const res = await apiCall('POST', `/inspections/${inspectionId}/mark-final`);
+                if (res.success) {
+                    alert('✅ Inspection marked as FINAL. Admin can now generate PDF.');
+                    loadSubmitted();
+                } else {
+                    alert('Error: ' + res.message);
+                }
+            } catch (error) {
+                alert('Failed to mark as final: ' + error.message);
+            }
+        }
+
+        function closeInspectionModal() {
+            document.getElementById('inspectionModal').classList.remove('active');
+        }
+
+        // Logout
+        function logout() {
+            if (confirm('Logout?')) {
+                localStorage.clear();
+                window.location.href = '/';
+            }
+        }
+
+        // Load initial data
+        window.addEventListener('load', () => {
+            loadAssignedTasks();
+        });
+    </script>
+</body>
+
+</html>
