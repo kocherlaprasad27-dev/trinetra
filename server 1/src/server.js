@@ -5,8 +5,8 @@ const bcrypt = require('bcryptjs');
 
 const PORT = process.env.PORT || 5001;
 
-const server = app.listen(PORT, () => {
-  console.log('House Inspection Backend running on port', PORT);
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`House Inspection Backend running on http://0.0.0.0:${PORT}`);
   ensureAdminUser().catch(err => console.error('Admin bootstrap error:', err));
 });
 

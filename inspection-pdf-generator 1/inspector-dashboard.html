@@ -467,7 +467,7 @@
     </div>
 
     <script>
-        const API_BASE = 'http://localhost:5001/api';
+        const API_BASE = window.location.protocol + "//" + window.location.hostname + ":5001/api";
         let authToken = localStorage.getItem('inspectorToken');
         let currentUser = JSON.parse(localStorage.getItem('inspectorUser') || '{}');
 

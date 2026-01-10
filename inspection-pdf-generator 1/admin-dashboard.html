@@ -705,7 +705,7 @@
 
     <script>
         // Version: 2.0.0 - Added editTask function
-        const API_BASE = 'http://localhost:5001/api';
+        const API_BASE = window.location.protocol + "//" + window.location.hostname + ":5001/api";
         let authToken = localStorage.getItem('adminToken');
         let currentUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
 

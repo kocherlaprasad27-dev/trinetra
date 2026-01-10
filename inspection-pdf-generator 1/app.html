@@ -13,6 +13,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#473c39">
     <title>Quality Inspection App</title>
+    <script src="api.js"></script>
+    <script src="login.js"></script>
+
     <style>
         * {
             margin: 0;
@@ -1517,8 +1520,8 @@
     </div>
 
     <script>
-        // API Configuration
-        const API_BASE_URL = 'http://localhost:5001/api';
+        // API Configuration - Backend runs on port 5001
+        const API_BASE_URL = window.location.protocol + "//" + window.location.hostname + ":5001/api";
         let authToken = localStorage.getItem('authToken') || '';
         let currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
 

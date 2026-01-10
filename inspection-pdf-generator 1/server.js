@@ -96,6 +96,6 @@ app.use('/pdfs', express.static(path.join(__dirname, 'pdfs')));
 
 // Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`\n🚀 PWA Server running at http://localhost:${PORT}\n`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 PWA Server running at http://0.0.0.0:${PORT}`);
 });
