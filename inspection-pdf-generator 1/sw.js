@@ -1,4 +1,4 @@
-const CACHE_NAME = 'inspection-pwa-v1';
+const CACHE_NAME = 'inspection-pwa-v2';
 const urlsToCache = [
   '/',
   '/app.html',

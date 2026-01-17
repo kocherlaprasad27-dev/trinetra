@@ -7,7 +7,7 @@ app.use(cors());
 app.use(express.json({ limit: '25mb' }));
 app.use('/uploads', express.static('uploads'));
 // Serve Frontend Static Files
-const clientPath = path.resolve(__dirname, '../../client');
+const clientPath = path.resolve(__dirname, '../../inspection-pdf-generator 1');
 app.use(express.static(clientPath));
 
 // API Routes

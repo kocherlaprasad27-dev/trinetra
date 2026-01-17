@@ -552,10 +552,154 @@
                 transform: scale(1);
             }
         }
+
+        /* ==================== RESPONSIVE STYLES ==================== */
+
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 1001;
+            background: #1e3c72;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            backdrop-filter: blur(2px);
+        }
+
+        @media (max-width: 1200px) {
+            .sidebar {
+                position: fixed;
+                left: -250px;
+                top: 0;
+                bottom: 0;
+                z-index: 1000;
+                transition: left 0.3s ease;
+                box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .mobile-toggle {
+                display: block;
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+            }
+
+            .container {
+                flex-direction: column;
+            }
+
+            .main-content {
+                width: 100%;
+                height: 100vh;
+            }
+
+            .header {
+                padding-right: 70px;
+                /* Room for toggle */
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .content {
+                padding: 15px;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            /* Responsive Tables */
+            table,
+            thead,
+            tbody,
+            th,
+            td,
+            tr {
+                display: block;
+            }
+
+            table thead {
+                display: none;
+                /* Hide headers */
+            }
+
+            table tr {
+                margin-bottom: 20px;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+                overflow: hidden;
+            }
+
+            table td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 12px 15px;
+                border: none;
+                border-bottom: 1px solid #f0f0f0;
+                text-align: right;
+            }
+
+            table td::before {
+                content: attr(data-label);
+                font-weight: 700;
+                color: #1e3c72;
+                text-align: left;
+                padding-right: 15px;
+            }
+
+            table td:last-child {
+                border-bottom: none;
+                background: #f9fafb;
+                justify-content: center;
+                gap: 10px;
+            }
+
+            .btn {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+        }
+
+        /* Landscape/Tablet fixes */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .sidebar {
+                padding-top: 60px;
+            }
+        }
     </style>
 </head>
 
 <body>
+    <button class="mobile-toggle" onclick="toggleMobileMenu()">☰</button>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileMenu()"></div>
+
     <div id="pdfLoader" class="pdf-loader-overlay">
         <div class="pdf-loader-card">
             <div class="pdf-loader-spinner"></div>
@@ -705,7 +849,7 @@
 
     <script>
         // Version: 2.0.0 - Added editTask function
-        const API_BASE = window.location.protocol + "//" + window.location.hostname + ":5001/api";
+        const API_BASE = window.location.origin + "/api";
         let authToken = localStorage.getItem('adminToken');
         let currentUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
 
@@ -900,11 +1044,11 @@
                     const canGeneratePDF = ['SUBMITTED', 'FINAL', 'REPORT_GENERATED', 'COMPLETED'].includes(i.status);
                     return `
                         <tr>
-                            <td>${i.inspectionNumber}</td>
-                            <td>${i.task?.clientName || 'N/A'}</td>
-                            <td>${i.performedBy?.name || 'N/A'}</td>
-                            <td><span class="badge badge-${i.status.toLowerCase()}">${i.status}</span></td>
-                            <td>
+                            <td data-label="Inspection #">${i.inspectionNumber}</td>
+                            <td data-label="Client">${i.task?.clientName || 'N/A'}</td>
+                            <td data-label="Inspector">${i.performedBy?.name || 'N/A'}</td>
+                            <td data-label="Status"><span class="badge badge-${i.status.toLowerCase()}">${i.status}</span></td>
+                            <td data-label="Action">
                                 ${canGeneratePDF ? `
                                     <button class="btn btn-success" onclick="generatePDF('${i.id}')">Generate PDF</button>
                                 ` : 'N/A'}
@@ -950,11 +1094,11 @@
 
                 const html = res.data.map(inspector => `
                     <tr>
-                        <td>${inspector.name}</td>
-                        <td>${inspector.email}</td>
-                        <td>${inspector._count.assignedTasks}</td>
-                        <td>${new Date(inspector.createdAt).toLocaleDateString()}</td>
-                        <td>
+                        <td data-label="Name">${inspector.name}</td>
+                        <td data-label="Email">${inspector.email}</td>
+                        <td data-label="Assigned Tasks">${inspector._count.assignedTasks}</td>
+                        <td data-label="Created">${new Date(inspector.createdAt).toLocaleDateString()}</td>
+                        <td data-label="Actions">
                             <button class="btn btn-secondary" onclick="editInspector('${inspector.id}')">Edit</button>
                             <button class="btn btn-danger" onclick="deleteInspector('${inspector.id}')">Delete</button>
                         </td>
@@ -1035,12 +1179,12 @@
 
                 const html = res.data.map(task => `
                     <tr>
-                        <td>${task.propertyId}</td>
-                        <td>${task.clientName}</td>
-                        <td>${task.assignedTo.name}</td>
-                        <td><span class="badge badge-${task.status.toLowerCase()}">${task.status}</span></td>
-                        <td>${task.inspections.length} reports</td>
-                        <td>
+                        <td data-label="Serial No">${task.propertyId}</td>
+                        <td data-label="Client">${task.clientName}</td>
+                        <td data-label="Inspector">${task.assignedTo.name}</td>
+                        <td data-label="Status"><span class="badge badge-${task.status.toLowerCase()}">${task.status}</span></td>
+                        <td data-label="Reports">${task.inspections.length} reports</td>
+                        <td data-label="Actions">
                             <button class="btn btn-secondary" onclick="editTask('${task.id}')">Edit</button>
                             <button class="btn btn-danger" onclick="deleteTask('${task.id}')">Delete</button>
                         </td>
@@ -1209,12 +1353,12 @@
                     const statusText = canGeneratePDF ? 'Ready for PDF' : `Waiting (${i.status})`;
                     return `
                     <tr>
-                        <td>${i.inspectionNumber}</td>
-                        <td>${i.task?.clientName || 'N/A'}</td>
-                        <td>${i.performedBy?.name || 'N/A'}</td>
-                        <td><span class="badge badge-${i.status.toLowerCase()}">${i.status}</span></td>
-                        <td>${i.overallScore !== null ? i.overallScore : 'N/A'}</td>
-                        <td>
+                        <td data-label="Inspection #">${i.inspectionNumber}</td>
+                        <td data-label="Client">${i.task?.clientName || 'N/A'}</td>
+                        <td data-label="Inspector">${i.performedBy?.name || 'N/A'}</td>
+                        <td data-label="Status"><span class="badge badge-${i.status.toLowerCase()}">${i.status}</span></td>
+                        <td data-label="Score">${i.overallScore !== null ? i.overallScore : 'N/A'}</td>
+                        <td data-label="Action">
                             ${canGeneratePDF ? `<button class="btn btn-success" onclick="generatePDF('${i.id}')">📄 Generate PDF</button>` : `<span style="color: #999;">${statusText}</span>`}
                             <button class="btn btn-secondary" onclick="viewInspection('${i.id}')">👁️ View</button>
                         </td>
@@ -1392,6 +1536,26 @@
                 window.location.href = '/';
             }
         }
+
+        // Mobile Menu Functions
+        function toggleMobileMenu() {
+            document.querySelector('.sidebar').classList.toggle('active');
+            document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+
+        function closeMobileMenu() {
+            document.querySelector('.sidebar').classList.remove('active');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+        }
+
+        // Close mobile menu on nav click (if mobile)
+        const oldSwitchSection = switchSection;
+        switchSection = function (section) {
+            oldSwitchSection(section);
+            if (window.innerWidth <= 1200) {
+                closeMobileMenu();
+            }
+        };
 
         // Load dashboard on page load
         loadDashboard();

@@ -1,6 +1,6 @@
 // api.js
 // Use port 5001 for backend API (UI is served from port 3000)
-const API_BASE = window.location.protocol + "//" + window.location.hostname + ":5001/api";
+const API_BASE = window.location.origin + "/api";
 
 /**
  * Generic API request helper

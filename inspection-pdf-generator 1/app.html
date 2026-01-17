@@ -1476,7 +1476,8 @@
 
                                     <canvas id="canvas" style="display:none;"></canvas>
 
-                                    <input type="file" id="galleryInput" accept="image/*" multiple style="display:none;" onchange="previewImages(event)">
+                                    <input type="file" id="galleryInput" accept="image/*" multiple style="display:none;"
+                                        onchange="previewImages(event)">
 
                                     <!-- Preview Area -->
                                     <div id="imagePreview" class="image-preview"></div>
@@ -1521,7 +1522,7 @@
 
     <script>
         // API Configuration - Backend runs on port 5001
-        const API_BASE_URL = window.location.protocol + "//" + window.location.hostname + ":5001/api";
+        const API_BASE_URL = window.location.origin + "/api";
         let authToken = localStorage.getItem('authToken') || '';
         let currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
 
