@@ -8,20 +8,20 @@ exports.createInspection = async (req, res) => {
   if (req.user.role !== 'ADMIN') return res.sendStatus(403);
 
   const { inspectorId, technician, metadata } = req.body;
-  
+
   let finalInspectorId = inspectorId;
-  
+
   // If inspectorId provided, validate it exists
   if (inspectorId) {
     const inspector = await prisma.user.findUnique({
       where: { id: inspectorId },
       select: { id: true, role: true }
     });
-    
+
     if (!inspector) {
       return res.status(400).json({ message: `Inspector with ID "${inspectorId}" not found in database` });
     }
-    
+
     if (inspector.role !== 'INSPECTOR') {
       return res.status(400).json({ message: `User "${inspectorId}" is not an INSPECTOR` });
     }
@@ -31,29 +31,29 @@ exports.createInspection = async (req, res) => {
       where: { role: 'INSPECTOR' },
       select: { id: true }
     });
-    
+
     if (!firstInspector) {
-      return res.status(400).json({ 
-        message: 'No inspectors found in database. Please create at least one INSPECTOR user before creating inspections.' 
+      return res.status(400).json({
+        message: 'No inspectors found in database. Please create at least one INSPECTOR user before creating inspections.'
       });
     }
-    
+
     finalInspectorId = firstInspector.id;
     console.log(`[AUTO-ASSIGN] No inspector specified, assigning to: ${finalInspectorId}`);
   }
-  
+
   // Validate creator exists in database
   const creator = await prisma.user.findUnique({
     where: { id: req.user.id },
     select: { id: true }
   });
-  
+
   if (!creator) {
-    return res.status(400).json({ 
-      message: `Your user account (ID: "${req.user.id}") does not exist in the database. Please log in with a valid database user account.` 
+    return res.status(400).json({
+      message: `Your user account (ID: "${req.user.id}") does not exist in the database. Please log in with a valid database user account.`
     });
   }
-  
+
   const json = await generatePrefill({ technician, metadata });
 
   // Allow metadata override after prefill
@@ -79,16 +79,16 @@ exports.createInspection = async (req, res) => {
       // Check which foreign key failed
       const failedField = error.meta?.field_name || 'unknown';
       if (failedField.includes('assignedToId')) {
-        return res.status(400).json({ 
-          message: `Inspector ID "${finalInspectorId}" does not exist in database. Please ensure the inspector user exists.` 
+        return res.status(400).json({
+          message: `Inspector ID "${finalInspectorId}" does not exist in database. Please ensure the inspector user exists.`
         });
       } else if (failedField.includes('createdById')) {
-        return res.status(400).json({ 
-          message: `Creator ID "${req.user.id}" does not exist in database. Please ensure you are logged in with a valid user account.` 
+        return res.status(400).json({
+          message: `Creator ID "${req.user.id}" does not exist in database. Please ensure you are logged in with a valid user account.`
         });
       }
-      return res.status(400).json({ 
-        message: 'Foreign key constraint failed. Please ensure all user IDs exist in the database.' 
+      return res.status(400).json({
+        message: 'Foreign key constraint failed. Please ensure all user IDs exist in the database.'
       });
     }
     res.status(500).json({ message: 'Failed to create inspection', error: error.message });
@@ -226,7 +226,7 @@ exports.updateInspection = async (req, res) => {
   // Validate JSON if provided
   if (req.body.inspectionJson) {
     validateInspection(req.body.inspectionJson);
-    
+
     // If status is being updated, compute derived fields
     if (req.body.inspectionJson.audit?.status === 'SUBMITTED') {
       computeDerived(req.body.inspectionJson);
@@ -235,8 +235,8 @@ exports.updateInspection = async (req, res) => {
 
   // Prevent inspectors from updating submitted inspections
   if (req.user.role === 'INSPECTOR' && (inspection.status === 'SUBMITTED' || inspection.status === 'REPORT_GENERATED')) {
-    return res.status(400).json({ 
-      message: 'Cannot update inspection after submission. Current status: ' + inspection.status 
+    return res.status(400).json({
+      message: 'Cannot update inspection after submission. Current status: ' + inspection.status
     });
   }
 
@@ -245,7 +245,7 @@ exports.updateInspection = async (req, res) => {
   if (req.body.inspectionJson) {
     updateData.inspectionJson = req.body.inspectionJson;
     updateData.status = req.body.inspectionJson.audit?.status || inspection.status;
-    
+
     // Auto-update status to IN_PROGRESS if inspector is updating a DRAFT inspection
     if (req.user.role === 'INSPECTOR' && inspection.status === 'DRAFT') {
       updateData.status = 'IN_PROGRESS';
@@ -298,8 +298,8 @@ exports.submitInspection = async (req, res) => {
 
   // Only allow submission if not already submitted or report generated
   if (inspection.status === 'SUBMITTED' || inspection.status === 'REPORT_GENERATED') {
-    return res.status(400).json({ 
-      message: 'Inspection has already been submitted. Current status: ' + inspection.status 
+    return res.status(400).json({
+      message: 'Inspection has already been submitted. Current status: ' + inspection.status
     });
   }
 
@@ -334,24 +334,24 @@ exports.generateReport = async (req, res) => {
 
   // Only allow PDF generation for submitted inspections
   if (inspection.status !== 'SUBMITTED' && inspection.status !== 'REPORT_GENERATED') {
-    return res.status(400).json({ 
-      message: 'Can only generate PDF for submitted inspections. Current status: ' + inspection.status 
+    return res.status(400).json({
+      message: 'Can only generate PDF for submitted inspections. Current status: ' + inspection.status
     });
   }
 
   try {
     // Load ERI JSON from database (this is the source of truth)
     const json = inspection.inspectionJson || {};
-    
+
     if (!json || Object.keys(json).length === 0) {
-      return res.status(400).json({ 
-        message: 'No inspection data found. Please ensure the inspection has been completed and submitted.' 
+      return res.status(400).json({
+        message: 'No inspection data found. Please ensure the inspection has been completed and submitted.'
       });
     }
-    
+
     console.log(`[PDF] Generating PDF for inspection ${inspection.id}`);
     console.log(`[PDF] Using JSON from database with ${json.rooms?.length || 0} rooms`);
-    
+
     // Ensure ERI JSON reflects latest audit status before generating report
     if (!json.audit) json.audit = {};
     json.audit.status = 'REPORT_GENERATED';
@@ -379,12 +379,12 @@ exports.generateReport = async (req, res) => {
 // Test PDF generation with dummy data
 exports.testPdfGeneration = async (req, res) => {
   const { dummyInspectionJson } = require('../../test-pdf-generation');
-  
+
   try {
     const { generatePdf } = require('../pdf/pdf.service');
     const reportPath = await generatePdf(dummyInspectionJson);
-    
-    res.json({ 
+
+    res.json({
       message: 'Test PDF generated successfully',
       reportPath: reportPath,
       downloadUrl: `http://localhost:5000/${reportPath}`

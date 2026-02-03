@@ -887,31 +887,8 @@
   </section>
 
 
-  <div class="page-break"></div>
 
-  <section style="display: flex; flex-direction: column; min-height: 100vh;">
-    <!-- Letterhead removed: now page-level only -->
-    <div class="letterhead">
-      <img src="assets/images/Trinetra.png" alt="Trinetra Logo" class="letterhead-logo"
-        style="width: 120px; height: 120px;" />
-      <div class="letterhead-text">
-        <h2>TRINETRA</h2>
-        <p>Professional Property Inspection Services</p>
-      </div>
-    </div>
-    <h1>Summary</h1>
-    <div class="stats" style="grid-template-columns: repeat(4, 1fr); max-width: 900px; margin: 30px auto;">
-      <div class="stat-box highlight" style="grid-column: span 1;">
-        <div class="value" id="overallHealth">95%</div>
-        <div class="label">Overall Unit Health</div>
-      </div>
-      <div id="roomHealthStats"
-        style="grid-column: span 3; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;"></div>
-    </div>
-    <!-- Page footer removed: now page-level only -->
-  </section>
-
-  <div class="page-break"></div>
+  <!-- Summary section removed -->
 
   <section style="display: flex; flex-direction: column; min-height: 100vh;">
     <!-- Letterhead removed: now page-level only -->
@@ -1353,7 +1330,7 @@
         let totalArea = 0;
 
         data.rooms.forEach(room => {
-          totalArea += room.totalArea || 0;
+          // totalArea += room.totalArea || 0; // Removed to calculate from dimensions for accuracy
 
           if (room.dimensions && room.dimensions.length > 0) {
             room.dimensions.forEach((dim, index) => {
@@ -1373,8 +1350,14 @@
               }
 
               areaBody.appendChild(row);
+
+              // Accumulate total area from dimensions
+              totalArea += parseFloat(dim.area || 0);
             });
           } else {
+            // Fallback if no dimensions are present
+            totalArea += parseFloat(room.totalArea || 0);
+
             const row = document.createElement("tr");
             row.innerHTML = `
           <td class="room-label">${room.name || "-"}</td>
@@ -1415,7 +1398,10 @@
 
         // Deduction Model: Major: -5, Minor: -2, Cosmetic: -1
         const overallPercentage = Math.max(0, 100 - (totalMajor * 5) - (totalMinor * 2) - (totalCosmetic * 1));
-        document.getElementById("overallHealth").textContent = overallPercentage.toFixed(0) + "%";
+        const overallHealthEl = document.getElementById("overallHealth");
+        if (overallHealthEl) {
+          overallHealthEl.textContent = overallPercentage.toFixed(0) + "%";
+        }
 
         /* =============================
            DIMENSIONS CHECK

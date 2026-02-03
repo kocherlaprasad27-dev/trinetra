@@ -695,7 +695,7 @@
                         </div>
                         <div class="btn-group">
                             <button class="btn btn-primary" onclick="continueInspection('${insp.id}')">Continue Inspection</button>
-                            <button class="btn btn-success" onclick="submitInspection('${insp.id}')">Submit Report</button>
+
                         </div>
                     </div>
                 `).join('');
@@ -742,19 +742,9 @@
                                 <label>Submitted Date</label>
                                 <div>${insp.submittedAt ? new Date(insp.submittedAt).toLocaleDateString() : 'N/A'}</div>
                             </div>
-                            <div class="info-item">
-                                <label>Status</label>
-                                <div>
-                                    ${insp.status === 'SUBMITTED' ? '⏳ Still Editing - Can Add/Edit Details' : ''}
-                                    ${insp.status === 'FINAL' ? '📋 Ready for Review' : ''}
-                                    ${insp.status === 'COMPLETED' ? '✅ Approved' : ''}
-                                    ${insp.status === 'REJECTED' ? '❌ Rejected - Resubmit Required' : ''}
-                                </div>
-                            </div>
                         </div>
                         <div class="btn-group">
                             <button class="btn btn-secondary" onclick="viewSubmittedInspection('${insp.id}')">View Report</button>
-                            ${insp.status === 'SUBMITTED' ? `<button class="btn btn-primary" onclick="markInspectionFinal('${insp.id}')">✅ Mark as Final</button>` : ''}
                             ${insp.status === 'REJECTED' ? `<button class="btn btn-primary" onclick="resubmitInspection('${insp.id}')">Resubmit</button>` : ''}
                         </div>
                     </div>
@@ -841,10 +831,42 @@
             if (!confirm('Are you sure? Once submitted, you cannot make further changes without admin approval.')) return;
 
             try {
-                // This would redirect to a submission page
-                window.location.href = `/inspection-submit.html?inspectionId=${inspectionId}`;
+                // 1. Fetch current inspection data to get the draft JSON
+                const res = await apiCall('GET', `/inspections/${inspectionId}`);
+                if (!res.success) throw new Error(res.message);
+
+                const inspection = res.data;
+                const inspectionJson = inspection.inspectionJson;
+
+                if (!inspectionJson) {
+                    throw new Error('No inspection data found. Please open the inspection and save it first.');
+                }
+
+                // 2. Submit the JSON to the submit endpoint
+                const submitRes = await apiCall('POST', `/inspections/${inspectionId}/submit`, {
+                    inspectionJson: inspectionJson
+                });
+
+                if (submitRes.success) {
+                    alert('✅ Inspection submitted successfully!');
+
+                    // Redirect to report generator
+                    window.location.href = `/report-generator.html?inspectionId=${inspectionId}`;
+                } else {
+                    throw new Error(submitRes.message);
+                }
             } catch (error) {
-                alert('Error: ' + error.message);
+                console.error('Submit error:', error);
+
+                // If validation failed, ask to open app
+                let msg = error.message;
+                if (msg.includes('Validation failed') || msg.includes('Missing')) {
+                    if (confirm(`Submission failed: ${msg}\n\nDo you want to open the inspection form to fix this?`)) {
+                        window.location.href = `/app.html?inspectionId=${inspectionId}&mode=submit`;
+                    }
+                } else {
+                    alert('Error submitting inspection: ' + msg);
+                }
             }
         }
 

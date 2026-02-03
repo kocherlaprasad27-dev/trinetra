@@ -1485,7 +1485,7 @@
 
                                 <div class="button-group" style="margin-top: 30px;">
                                     <button type="submit" class="btn">💾 Save & Add Another</button>
-                                    <button type="button" class="btn btn-secondary" onclick="hideInspectionForm()">Done
+                                    <button type="button" class="btn btn-secondary" onclick="handleDoneClose()">Done
                                         / Close</button>
                                 </div>
                             </form>
@@ -2310,7 +2310,29 @@
                     document.getElementById('employeeName').textContent = currentUser.name || 'Inspector';
                     document.getElementById('mainApp').classList.remove('hidden');
                     document.getElementById('loginPage').classList.add('hidden');
-                    // TODO: Pre-populate forms with currentInspectionData.inspectionJson
+                    // Restore form data if we have inspectionJson
+                    restoreInspectionFormData(currentInspectionData);
+
+                    // If mode is submit, switch to final tab
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.get('mode') === 'submit') {
+                        setTimeout(() => {
+                            switchTab('brandsTab');
+                            document.querySelector('button[onclick="submitFinalInspection()"]').scrollIntoView({
+                                behavior: 'smooth', block: 'center'
+                            });
+                            // Optional: Show a hint
+                            const toast = document.createElement('div');
+                            toast.textContent = 'Please review and click "Submit Final Inspection"';
+                            toast.style.cssText = `
+                                position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+                                background: #1e3c72; color: white; padding: 10px 20px;
+                                border-radius: 20px; z-index: 10000; font-weight: bold;
+                            `;
+                            document.body.appendChild(toast);
+                            setTimeout(() => toast.remove(), 4000);
+                        }, 1000);
+                    }
                 }
             } catch (error) {
                 console.error('❌ Error loading inspection:', error);
@@ -2328,6 +2350,63 @@
 
                 alert('Failed to load inspection from server and no local backup found. Redirecting to dashboard.');
                 window.location.href = '/inspector-dashboard.html';
+            }
+
+            // Restore form data from saved inspection
+            function restoreInspectionFormData(inspectionData) {
+                console.log('🔄 Restoring form data from inspection...');
+
+                // Try to get the data from inspectionJson or extension_data
+                let savedData = null;
+
+                if (inspectionData.inspectionJson) {
+                    // Check if extension_data exists (our saved UI state)
+                    if (inspectionData.inspectionJson.metadata?.extension_data) {
+                        savedData = inspectionData.inspectionJson.metadata.extension_data;
+                        console.log('📦 Found extension_data in metadata');
+                    } else {
+                        savedData = inspectionData.inspectionJson;
+                        console.log('📦 Using inspectionJson directly');
+                    }
+                }
+
+                if (!savedData) {
+                    console.log('⚠️ No saved data to restore');
+                    return;
+                }
+
+                // Restore rooms
+                if (savedData.rooms && Array.isArray(savedData.rooms)) {
+
+                    rooms = savedData.rooms;
+                    console.log('✅ Restored', rooms.length, 'rooms');
+                    updateRoomsList();
+                }
+
+                // Restore inspections (issues)
+                if (savedData.inspections && Array.isArray(savedData.inspections)) {
+                    inspections = savedData.inspections;
+                    console.log('✅ Restored', inspections.length, 'inspections/issues');
+                    updateInspectionsList();
+                    calculateQualityMetrics();
+                }
+
+                // Restore water quality values
+                if (savedData.quality?.water) {
+                    const phInput = document.getElementById('phValue');
+                    const tdsInput = document.getElementById('tdsValue');
+                    if (phInput && savedData.quality.water.ph) {
+                        phInput.value = savedData.quality.water.ph;
+                    }
+                    if (tdsInput && savedData.quality.water.tds) {
+                        tdsInput.value = savedData.quality.water.tds;
+                    }
+                    console.log('✅ Restored water quality values');
+                }
+
+                // Save to session state for persistence
+                saveSessionState();
+                console.log('✅ Form data restoration complete');
             }
         }
 
@@ -3237,20 +3316,19 @@
             });
         }
 
-        document.getElementById('inspectionForm').addEventListener("submit", e => {
-            e.preventDefault();
+        function handleSaveInspection(shouldClose = false) {
             const roomId = parseInt(document.getElementById('inspectionRoom').value);
             const room = rooms.find(r => r.id === roomId);
 
             if (!room) {
                 alert('Please select a valid room.');
-                return;
+                return false;
             }
 
             const issueDescription = document.getElementById('issueDescription').value;
             if (!issueDescription) {
                 alert('Please enter an issue description.');
-                return;
+                return false;
             }
 
             const issueType = document.getElementById('issueType').value;
@@ -3270,7 +3348,6 @@
             updateInspectionsList();
             calculateQualityMetrics();
 
-            // --- MODIFIED FOR MULTIPLE ENTRIES ---
             // Clear only issue specific fields, keep Room and Category selected
             document.getElementById('issueDescription').value = '';
             document.getElementById('issueType').value = 'Major';
@@ -3279,13 +3356,11 @@
             document.getElementById('imagePreview').innerHTML = "";
             selectedIssue = null;
 
-            console.log('Issue added. Modal remains open for more entries.');
-            // hideInspectionForm(); // Don't close modal
-            // --------------------------------------
+            console.log('Issue added.');
 
-            // toast-like notification instead of alert for better flow
+            // toast-like notification
             const toast = document.createElement('div');
-            toast.textContent = 'Issue added successfully!';
+            toast.textContent = shouldClose ? 'Issue saved. Closing...' : 'Issue added successfully!';
             toast.style.cssText = `
                 position: fixed; top: 20px; right: 20px; background: #28a745; color: white;
                 padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -3296,6 +3371,29 @@
                 toast.style.animation = 'slideOut 0.3s ease-in';
                 setTimeout(() => toast.remove(), 300);
             }, 2000);
+
+            if (shouldClose) {
+                hideInspectionForm();
+            }
+            return true;
+        }
+
+        function handleDoneClose() {
+            const description = document.getElementById('issueDescription').value.trim();
+            const hasImages = uploadedImages.length > 0;
+
+            if (description || hasImages) {
+                // Try to save and close
+                handleSaveInspection(true);
+            } else {
+                // Just close
+                hideInspectionForm();
+            }
+        }
+
+        document.getElementById('inspectionForm').addEventListener("submit", e => {
+            e.preventDefault();
+            handleSaveInspection(false);
         });
 
         function deleteInspection(inspectionId) {
