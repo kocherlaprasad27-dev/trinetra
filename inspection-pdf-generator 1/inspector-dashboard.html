@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#473c39">
     <title>Inspector Dashboard - Inspection App</title>
+    <script src="toast.js"></script>
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -529,6 +530,7 @@
         </div>
     </div>
 
+    <script src="toast.js"></script>
     <script>
         const API_BASE = window.location.origin + "/api";
         let authToken = localStorage.getItem('inspectorToken');
@@ -803,7 +805,7 @@
                 `;
                 modal.classList.add('active');
             } catch (error) {
-                alert('Error loading task: ' + error.message);
+                showToast('Error loading task: ' + error.message, 'error');
             }
         }
 
@@ -813,7 +815,7 @@
                 // Redirect to inspection form with task ID
                 window.location.href = `/app.html?taskId=${taskId}`;
             } catch (error) {
-                alert('Error: ' + error.message);
+                showToast('Error: ' + error.message, 'error');
             }
         }
 
@@ -822,7 +824,7 @@
             try {
                 window.location.href = `/app.html?inspectionId=${inspectionId}`;
             } catch (error) {
-                alert('Error: ' + error.message);
+                showToast('Error: ' + error.message, 'error');
             }
         }
 
@@ -848,7 +850,7 @@
                 });
 
                 if (submitRes.success) {
-                    alert('✅ Inspection submitted successfully!');
+                    showToast('✅ Inspection submitted successfully!', 'success');
 
                     // Redirect to report generator
                     window.location.href = `/report-generator.html?inspectionId=${inspectionId}`;
@@ -865,7 +867,7 @@
                         window.location.href = `/app.html?inspectionId=${inspectionId}&mode=submit`;
                     }
                 } else {
-                    alert('Error submitting inspection: ' + msg);
+                    showToast('Error submitting inspection: ' + msg, 'error');
                 }
             }
         }
@@ -924,26 +926,26 @@
                 `;
                 modal.classList.add('active');
             } catch (error) {
-                alert('Error loading inspection: ' + error.message);
+                showToast('Error loading inspection: ' + error.message, 'error');
             }
         }
 
         // Mark inspection as FINAL
         async function markInspectionFinal(inspectionId) {
-            if (!confirm('Mark this inspection as FINAL? Once marked, admin can generate PDF. You can still edit it after marking as final if needed.')) {
+            if (!await showConfirm('Mark this inspection as FINAL? Once marked, admin can generate PDF. You can still edit it after marking as final if needed.')) {
                 return;
             }
 
             try {
                 const res = await apiCall('POST', `/inspections/${inspectionId}/mark-final`);
                 if (res.success) {
-                    alert('✅ Inspection marked as FINAL. Admin can now generate PDF.');
+                    showToast('✅ Inspection marked as FINAL. Admin can now generate PDF.', 'success');
                     loadSubmitted();
                 } else {
-                    alert('Error: ' + res.message);
+                    showToast('Error: ' + res.message, 'error');
                 }
             } catch (error) {
-                alert('Failed to mark as final: ' + error.message);
+                showToast('Failed to mark as final: ' + error.message, 'error');
             }
         }
 
@@ -952,9 +954,11 @@
         }
 
         // Logout
-        function logout() {
-            if (confirm('Logout?')) {
+        async function logout() {
+            if (await showConfirm('Are you sure you want to logout?')) {
                 localStorage.clear();
+                // Clear session data from IndexedDB
+                try { indexedDB.deleteDatabase('InspectionDB'); } catch (e) { console.error(e); }
                 window.location.href = '/';
             }
         }

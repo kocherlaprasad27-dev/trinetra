@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Inspection Management</title>
+    <script src="toast.js"></script>
     <style>
         * {
             margin: 0;
@@ -847,6 +848,7 @@
         </div>
     </div>
 
+    <script src="toast.js"></script>
     <script>
         // Version: 2.0.0 - Added editTask function
         const API_BASE = window.location.origin + "/api";
@@ -944,7 +946,7 @@
 
                 modal.classList.add('active');
             } catch (error) {
-                alert(`Error loading inspector data: ${error.message}`);
+                showToast(`Error loading inspector data: ${error.message}`, 'error');
             }
         }
 
@@ -960,11 +962,11 @@
                 }
 
                 await apiCall('PUT', `/inspectors/${id}`, data);
-                alert('Inspector updated successfully!');
+                showToast('Inspector updated successfully!', 'success');
                 closeInspectorModal();
                 loadInspectors();
             } catch (error) {
-                alert(`Error updating inspector: ${error.message}`);
+                showToast(`Error updating inspector: ${error.message}`, 'error');
             }
         }
 
@@ -1142,11 +1144,11 @@
                 };
 
                 const res = await apiCall('POST', '/inspectors', data);
-                alert('Inspector created successfully!');
+                showToast('Inspector created successfully!', 'success');
                 closeInspectorModal();
                 loadInspectors();
             } catch (error) {
-                alert('Error creating inspector: ' + error.message);
+                showToast('Error creating inspector: ' + error.message, 'error');
             }
         }
 
@@ -1155,10 +1157,10 @@
             if (!confirm('Are you sure?')) return;
             try {
                 await apiCall('DELETE', `/inspectors/${id}`);
-                alert('Inspector deleted');
+                showToast('Inspector deleted', 'success');
                 loadInspectors();
             } catch (error) {
-                alert('Error: ' + error.message);
+                showToast('Error: ' + error.message, 'error');
             }
         }
 
@@ -1220,7 +1222,7 @@
             e.preventDefault();
             const inspectorId = document.getElementById('selectedInspectorId').value;
             if (!inspectorId) {
-                alert('Please select an inspector');
+                showToast('Please select an inspector', 'error');
                 return;
             }
 
@@ -1239,11 +1241,11 @@
                 const editId = document.getElementById('taskModal').dataset.editId;
                 if (editId) {
                     await apiCall('PUT', `/tasks/${editId}`, data);
-                    alert('Task updated successfully!');
+                    showToast('Task updated successfully!', 'success');
                     delete document.getElementById('taskModal').dataset.editId;
                 } else {
                     await apiCall('POST', '/tasks', data);
-                    alert('Task assigned successfully!');
+                    showToast('Task assigned successfully!', 'success');
                 }
 
                 closeTaskModal();
@@ -1251,10 +1253,10 @@
             } catch (error) {
                 console.error('Task save error:', error);
                 if (error.message.includes('Admin user not found')) {
-                    alert('Session expired. Please logout and login again.');
+                    showToast('Session expired. Please logout and login again.', 'error');
                     logout();
                 } else {
-                    alert('Error saving task: ' + error.message);
+                    showToast('Error saving task: ' + error.message, 'error');
                 }
             }
         }
@@ -1264,10 +1266,10 @@
             if (!confirm('Delete this task?')) return;
             try {
                 await apiCall('DELETE', `/tasks/${id}`);
-                alert('Task deleted');
+                showToast('Task deleted', 'success');
                 loadTasks();
             } catch (error) {
-                alert('Error: ' + error.message);
+                showToast('Error: ' + error.message, 'error');
             }
         }
 
@@ -1295,7 +1297,7 @@
                     document.getElementById('inspectorSearch').value = task.assignedTo?.name || '';
                 }
             } catch (error) {
-                alert('Error loading task: ' + error.message);
+                showToast('Error loading task: ' + error.message, 'error');
             }
         }
 
@@ -1428,7 +1430,7 @@
             } catch (error) {
                 // Hide loader on error
                 loader.classList.remove('active');
-                alert('Error generating PDF: ' + error.message);
+                showToast('Error generating PDF: ' + error.message, 'error');
             }
         }
 
@@ -1525,14 +1527,16 @@
 
             } catch (error) {
                 console.error(error);
-                alert('Error loading report details: ' + error.message);
+                showToast('Error loading report details: ' + error.message, 'error');
             }
         }
 
         // Logout
-        function logout() {
-            if (confirm('Logout?')) {
+        async function logout() {
+            if (await showConfirm('Are you sure you want to logout?')) {
                 localStorage.clear();
+                // Clear session data from IndexedDB
+                try { indexedDB.deleteDatabase('InspectionDB'); } catch (e) { console.error(e); }
                 window.location.href = '/';
             }
         }

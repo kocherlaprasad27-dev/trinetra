@@ -14,7 +14,7 @@
     <meta name="theme-color" content="#473c39">
     <title>Quality Inspection App</title>
     <script src="api.js"></script>
-    <script src="login.js"></script>
+    <script src="toast.js"></script>
 
     <style>
         * {
@@ -1739,7 +1739,7 @@
             console.log('💾 Session auto-saved');
 
             // 4. Background Sync to Server (Throttled)
-            if (navigator.onLine && currentInspectionData?.id) {
+            if (navigator.onLine && currentInspectionData?.id && authToken) {
                 const now = Date.now();
                 const lastSync = parseInt(localStorage.getItem('last_server_sync') || '0');
                 if (now - lastSync > 60000) { // Max once per minute
@@ -1787,6 +1787,12 @@
                     if ((taskId && savedTaskId && taskId !== savedTaskId) ||
                         (inspectionId && savedInspectionId && inspectionId !== savedInspectionId)) {
                         console.warn('⚠️ Session from different task. Not restoring data.');
+                        return;
+                    }
+
+                    // Security: Verify ownership
+                    if (!authToken || (state.currentEmployee && state.currentEmployee !== currentEmployee)) {
+                        console.warn('⚠️ Session mismatch or no auth token. Not restoring data.');
                         return;
                     }
 
@@ -1909,7 +1915,7 @@
                             }
                         } catch (error) {
                             console.error('❌ Failed to start inspection for task:', error);
-                            alert('Error: Could not initialize inspection for this task. ' + error.message);
+                            showToast('Error: Could not initialize inspection for this task. ' + error.message, 'error');
                             window.location.href = '/inspector-dashboard.html';
                         }
                     }
@@ -2196,11 +2202,11 @@
                 } else {
                     const error = await response.json();
                     console.error('❌ Login failed:', response.status, error);
-                    alert(error.message || "Invalid credentials");
+                    showToast(error.message || "Invalid credentials", 'error');
                 }
             } catch (error) {
                 console.error('❌ Login error (network):', error);
-                alert("Connection error. Make sure backend is running on http://localhost:5001");
+                showToast("Connection error. Make sure backend is running on http://localhost:5001", 'error');
             }
         });
 
@@ -2224,9 +2230,11 @@
             currentEmployee = "";
             rooms = [];
             inspections = [];
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('currentUser');
-            localStorage.removeItem('inspection_session');
+            localStorage.clear();
+            try {
+                // Nuke the entire database to ensure no stale session or data
+                indexedDB.deleteDatabase('InspectionDB');
+            } catch (e) { console.error(e); }
             document.getElementById('loginPage').classList.remove("hidden");
             document.getElementById('mainApp').classList.add("hidden");
             document.getElementById('loginForm').reset();
@@ -2287,7 +2295,7 @@
                 }
             } catch (error) {
                 console.error('❌ Error loading task:', error);
-                alert('Failed to load task. Redirecting to dashboard.');
+                showToast('Failed to load task. Redirecting to dashboard.', 'error');
                 window.location.href = '/inspector-dashboard.html';
             }
         }
@@ -2348,7 +2356,7 @@
                     return;
                 }
 
-                alert('Failed to load inspection from server and no local backup found. Redirecting to dashboard.');
+                showToast('Failed to load inspection from server and no local backup found. Redirecting to dashboard.', 'error');
                 window.location.href = '/inspector-dashboard.html';
             }
 
@@ -2584,6 +2592,10 @@
                 });
 
                 baseJson.rooms = finalRooms;
+
+                // Ensure quality metrics (Water, etc) are included in the submission
+                baseJson.quality = frontendData.quality;
+
                 console.log('📦 Converted for Server Submission (All Items):', baseJson);
                 return baseJson;
             }
@@ -2597,7 +2609,7 @@
         // Function to save inspection as a draft
         async function saveInspectionDraft(isSilent = false) {
             if (!currentInspectionData || !currentInspectionData.id) {
-                alert('Error: No active inspection to save.');
+                showToast('Error: No active inspection to save.', 'error');
                 return;
             }
 
@@ -2670,17 +2682,17 @@
                             currentInspectionData = response.data;
                         }
 
-                        if (!isSilent) alert('Inspection draft synced to server!');
+                        if (!isSilent) showToast('Inspection draft synced to server!', 'success');
                         console.log('Inspection draft synced:', currentInspectionData);
                     } else {
                         throw new Error(response.message || 'Failed to sync draft.');
                     }
                 } catch (error) {
                     console.error('Error syncing draft:', error);
-                    alert('Draft saved locally. Failed to sync to server: ' + error.message);
+                    showToast('Draft saved locally. Failed to sync to server: ' + error.message, 'error');
                 }
             } else {
-                alert('You are offline. Draft saved locally.');
+                showToast('You are offline. Draft saved locally.', 'info');
             }
         }
 
@@ -3179,7 +3191,7 @@
 
         function showInspectionForm() {
             if (rooms.length === 0) {
-                alert('Please add at least one room before creating an inspection.');
+                showToast('Please add at least one room before creating an inspection.', 'error');
                 switchTab('area');
                 return;
             }
@@ -3213,7 +3225,7 @@
             console.log('Trying to show dropdown for category:', category);
 
             if (!category) {
-                alert('Please select a category first');
+                showToast('Please select a category first', 'error');
                 document.getElementById('issueDescription').blur();
                 return;
             }
@@ -3321,13 +3333,13 @@
             const room = rooms.find(r => r.id === roomId);
 
             if (!room) {
-                alert('Please select a valid room.');
+                showToast('Please select a valid room.', 'error');
                 return false;
             }
 
             const issueDescription = document.getElementById('issueDescription').value;
             if (!issueDescription) {
-                alert('Please enter an issue description.');
+                showToast('Please enter an issue description.', 'error');
                 return false;
             }
 
@@ -3396,8 +3408,9 @@
             handleSaveInspection(false);
         });
 
-        function deleteInspection(inspectionId) {
-            if (confirm('Are you sure you want to delete this inspection?')) {
+        async function deleteInspection(inspectionId) {
+            const confirmed = await showConfirm('Are you sure you want to delete this inspection?');
+            if (confirmed) {
                 inspections = inspections.filter(i => i.id !== inspectionId);
                 saveSessionState();
                 updateInspectionsList();
@@ -3442,19 +3455,23 @@
         async function submitFinalInspection() {
             // Validation checks
             if (!currentInspectionData || !currentInspectionData.id) {
-                alert('Error: No active inspection to submit.');
+                showToast('Error: No active inspection to submit.', 'error');
                 return;
             }
 
             if (rooms.length === 0) {
-                alert('Please add at least one room before submitting the inspection.');
+                showToast('Please add at least one room before submitting the inspection.', 'error');
                 return;
             }
 
+            /*
             const confirmation = confirm('Are you sure you want to submit this inspection? It cannot be edited after submission.');
             if (!confirmation) {
                 return;
             }
+            */
+            const confirmation = await showConfirm('Are you sure you want to submit this inspection? It cannot be edited after submission.');
+            if (!confirmation) return;
 
             // Collect data, including prompts for client/property/verifier if not from task
 
@@ -3477,7 +3494,7 @@
 
             // Final sanity check before sending
             if (!inspectionJson.rooms || inspectionJson.rooms.length === 0) {
-                alert('Critical Error: Inspection schema is missing. Cannot submit. Please contact support.');
+                showToast('Critical Error: Inspection schema is missing. Cannot submit. Please contact support.', 'error');
                 return;
             }
 
@@ -3502,7 +3519,7 @@
                 loadingDiv.remove();
 
                 if (response.success || response.message === 'Inspection submitted successfully') {
-                    alert('✅ Inspection submitted successfully!');
+                    showToast('✅ Inspection submitted successfully!', 'success');
                     window.location.href = '/inspector-dashboard.html';
                 } else {
                     throw new Error(response.message || 'Failed to submit inspection.');
@@ -3510,18 +3527,18 @@
             } catch (error) {
                 loadingDiv.remove();
                 console.error('Inspection submission failed:', error);
-                alert(`Failed to submit inspection: ${error.message}`);
+                showToast(`Failed to submit inspection: ${error.message}`, 'error');
             }
         }
 
         async function generatePDFReport() {
             if (!currentInspectionData || !currentInspectionData.id) {
-                alert('No inspection selected.');
+                showToast('No inspection selected.', 'error');
                 return;
             }
 
             if (!navigator.onLine) {
-                alert('You are offline. Cannot generate PDF report.');
+                showToast('You are offline. Cannot generate PDF report.', 'error');
                 return;
             }
 
@@ -3571,7 +3588,7 @@
             } catch (error) {
                 loader.classList.remove('active');
                 console.error('❌ PDF Report failed:', error);
-                alert(`❌ PDF Report generation failed: ${error.message}`);
+                showToast(`❌ PDF Report generation failed: ${error.message}`, 'error');
             }
         }
 
@@ -3607,7 +3624,7 @@
                         }
                     }
                     banner.remove();
-                    alert('Sync completed! All pending inspections have been submitted.');
+                    showToast('Sync completed! All pending inspections have been submitted.', 'success');
                 }
             } catch (e) {
                 console.error('Error during sync check:', e);
@@ -3778,7 +3795,7 @@
                             document.getElementById('closeCameraBtn').style.display = 'inline-block';
                         })
                         .catch(e => {
-                            alert("Camera not available");
+                            showToast("Camera not available", 'error');
                             console.error(e);
                         });
                 });
