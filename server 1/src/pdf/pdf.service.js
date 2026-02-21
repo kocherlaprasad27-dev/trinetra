@@ -47,11 +47,25 @@ function transformInspectionData(inspectionJson) {
           description: item.description || item.label || 'No description',
           images: (item.images || item.photos || []).map(img => {
             if (!img) return null;
-            if (img.startsWith('data:')) return img;
-            // Handle server paths starting with / or not
-            if (img.startsWith('/')) return `http://localhost:5001${img}`;
-            if (img.includes('uploads/')) return `http://localhost:5001/${img}`;
-            return img;
+
+            // Handle both string URLs and object structure { data: 'url', comment: 'text' }
+            let url = typeof img === 'string' ? img : img.data;
+            let comment = typeof img === 'object' ? img.comment : '';
+
+            if (!url) return null;
+
+            if (url.startsWith('data:')) return { url, comment };
+
+            // Handle server paths - keep them relative for proxying in PDF generator
+            if (url.startsWith('/')) {
+              // already relative
+            } else if (url.includes('uploads/')) {
+              // normalize to root relative
+              const match = url.match(/uploads\/.*$/);
+              if (match) url = `/${match[0]}`;
+            }
+
+            return { url, comment };
           }).filter(Boolean),
           date: item.date || new Date().toISOString()
         };
@@ -62,7 +76,8 @@ function transformInspectionData(inspectionJson) {
       dimensions: room.dimensions || (room.length ? [{ length: room.length, width: room.width }] : []),
       materials: room.materials || {},
       brands: room.brands || {},
-      dimensionDetails: room.dimensionDetails || {}
+      dimensionDetails: room.dimensionDetails || {},
+      remarks: room.remarks || ''
     }));
   } else {
     // 🏛️ Deep Fallback: Legacy structure (room.items array)
@@ -115,6 +130,19 @@ function transformInspectionData(inspectionJson) {
     return sum + (isNaN(roomArea) ? 0 : roomArea);
   }, 0);
 
+  // 📝 Resolve Logo URL
+  const LOGO_DIR = path.resolve(__dirname, '../../uploads/logo');
+  const files = fs.existsSync(LOGO_DIR) ? fs.readdirSync(LOGO_DIR) : [];
+  const customLogo = files.find(f => f.startsWith('custom-logo'));
+
+  // Add cache buster to force refresh (prevents stale logos in PDF generation)
+  const cacheBust = `?v=${Date.now()}`;
+
+  // Resolve Absolute Logo URL for robustness in Playwright/PDF generation
+  const logoUrl = customLogo
+    ? `http://127.0.0.1:5001/uploads/logo/${customLogo}${cacheBust}`
+    : `http://127.0.0.1:5001/assets/images/Trinetra.png${cacheBust}`;
+
   // Final Output
   return {
     reportId: String(inspectionJson.inspection_id || '0000').padStart(8, '0'),
@@ -123,6 +151,7 @@ function transformInspectionData(inspectionJson) {
     inspectionDate: new Date(inspectionJson.inspection_date || inspectionJson.submittedAt || Date.now()).toLocaleDateString(),
     clientName: inspectionJson.client_name || inspectionJson.clientName || 'Client',
     propertyAddress: inspectionJson.property_address || inspectionJson.propertyAddress || 'Property Address',
+    logoUrl: logoUrl,
     rooms: rooms,
     inspections: inspections,
     quality: {

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'inspection-pwa-v2';
+const CACHE_NAME = 'inspection-pwa-v3';
 const urlsToCache = [
   '/',
   '/app.html',
@@ -44,47 +44,63 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch Strategy: Cache First, then Network
+// Fetch Strategy
 self.addEventListener('fetch', event => {
-  // Skip API requests - always go to network
-  if (event.request.url.includes('/api/')) {
+  const url = new URL(event.request.url);
+
+  // 1. API requests: Network Only
+  if (url.pathname.startsWith('/api/')) {
     return event.respondWith(fetch(event.request));
   }
 
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Cache hit - return cached response
-        if (response) {
-          return response;
-        }
-
-        // Clone request
-        const fetchRequest = event.request.clone();
-
-        return fetch(fetchRequest).then(response => {
+  // 2. HTML Pages: Network First, then Cache (to ensure updates are seen)
+  if (url.pathname.endsWith('.html') || url.pathname === '/' || url.pathname.includes('admin-dashboard')) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
           // Check if valid response
           if (!response || response.status !== 200 || response.type !== 'basic') {
             return response;
           }
-
-          // Clone response
+          // Clone and update cache
           const responseToCache = response.clone();
-
-          // Only cache HTTP/HTTPS requests
-          if (event.request.url.startsWith('http')) {
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                cache.put(event.request, responseToCache);
-              });
-          }
-
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseToCache);
+          });
           return response;
-        }).catch(() => {
-          // Offline fallback
-          if (event.request.destination === 'document') {
+        })
+        .catch(() => {
+          return caches.match(event.request).then(response => {
+            if (response) return response;
+            // Fallback to app.html for SPA navigation
             return caches.match('/app.html');
+          });
+        })
+    );
+    return;
+  }
+
+  // 3. Assets (Images, JS, CSS): Cache First, then Network
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => {
+        if (response) {
+          return response;
+        }
+
+        const fetchRequest = event.request.clone();
+        return fetch(fetchRequest).then(response => {
+          if (!response || response.status !== 200 || response.type !== 'basic') {
+            return response;
           }
+
+          const responseToCache = response.clone();
+          if (event.request.url.startsWith('http')) {
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return response;
         });
       })
   );

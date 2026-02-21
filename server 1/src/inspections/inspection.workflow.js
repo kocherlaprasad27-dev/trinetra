@@ -4,7 +4,7 @@ const prisma = require('../config/prisma');
 const authMiddleware = require('../utils/authMiddleware');
 const requireRole = require('../utils/requireRole');
 const { validateInspectionJson, computeDerivedFields } = require('../tasks/task.prefill');
-const { generatePDF } = require('../pdf/pdf.service');
+const pdfService = require('../pdf/pdf.service');
 const fs = require('fs');
 const path = require('path');
 
@@ -322,17 +322,20 @@ router.post('/:inspectionId/mark-final', authMiddleware, requireRole('INSPECTOR'
   }
 });
 
+// This route handles both INSPECTOR draft saves (via PATCH) and ADMIN updates (if needed)
+
 /**
- * @route   PATCH /api/inspections/:inspectionId
- * @desc    Update inspection data (if IN_PROGRESS or SUBMITTED)
- * @access  Private (INSPECTOR - only for own inspections)
+ * @route   PUT /api/inspections/:inspectionId
+ * @desc    Global update route (Inspector for drafts, Admin for reassignment)
+ * @access  Private
  */
-router.patch('/:inspectionId', authMiddleware, requireRole('INSPECTOR'), async (req, res) => {
+router.put('/:inspectionId', authMiddleware, async (req, res) => {
   try {
     const { inspectionId } = req.params;
-    const { id: userId } = req.user;
-    const { inspectionJson } = req.body;
+    const { id: userId, role } = req.user;
+    const { performedById, inspectionJson, status } = req.body;
 
+    // 1. Fetch inspection to check ownership/role permissions
     const inspection = await prisma.inspection.findUnique({
       where: { id: inspectionId }
     });
@@ -341,45 +344,163 @@ router.patch('/:inspectionId', authMiddleware, requireRole('INSPECTOR'), async (
       return res.status(404).json({ success: false, message: 'Inspection not found' });
     }
 
-    // Verify ownership
-    if (inspection.performedById !== userId) {
-      return res.status(403).json({ success: false, message: 'Access denied' });
+    // 2. Handle Reassignment (ADMIN ONLY)
+    if (performedById) {
+      if (role !== 'ADMIN') {
+        return res.status(403).json({ success: false, message: 'Only admins can reassign inspections' });
+      }
+
+      const updated = await prisma.inspection.update({
+        where: { id: inspectionId },
+        data: {
+          performedBy: { connect: { id: performedById } },
+          status: 'IN_PROGRESS', // Reset for visibility
+          task: {
+            update: {
+              assignedTo: { connect: { id: performedById } },
+              status: 'IN_PROGRESS'
+            }
+          },
+          auditLog: {
+            create: {
+              action: 'REASSIGNED',
+              changedFields: { performedById, status: 'IN_PROGRESS' },
+              changedBy: userId
+            }
+          }
+        }
+      });
+      return res.json({ success: true, data: updated });
     }
 
-    // Allow updates if status is IN_PROGRESS or SUBMITTED (inspector can still edit)
-    if (inspection.status !== 'IN_PROGRESS' && inspection.status !== 'SUBMITTED') {
-      return res.status(400).json({
-        success: false,
-        message: `Cannot update inspection with status ${inspection.status}. Only IN_PROGRESS or SUBMITTED inspections can be edited.`
+    // 3. Handle Draft Save or Revision (INSPECTOR ONLY - or Admin if allowed)
+    if (inspectionJson) {
+      // Access control for inspectors
+      if (role === 'INSPECTOR' && inspection.performedById !== userId) {
+        return res.status(403).json({ success: false, message: 'Access denied: Not your inspection' });
+      }
+
+      // Allow updates if status is IN_PROGRESS, SUBMITTED, or even REPORT_GENERATED (Revision)
+      const modifiableStatuses = ['IN_PROGRESS', 'SUBMITTED', 'REPORT_GENERATED', 'COMPLETED'];
+      if (!modifiableStatuses.includes(inspection.status)) {
+        return res.status(400).json({
+          success: false,
+          message: `Cannot update inspection with status ${inspection.status}`
+        });
+      }
+
+      const updated = await prisma.inspection.update({
+        where: { id: inspectionId },
+        data: {
+          inspectionJson,
+          auditLog: {
+            create: {
+              action: inspection.status === 'REPORT_GENERATED' || inspection.status === 'COMPLETED' ? 'REVISED' : 'MODIFIED',
+              changedBy: userId
+            }
+          }
+        },
+        include: {
+          task: true,
+          performedBy: { select: { id: true, name: true } }
+        }
+      });
+      return res.json({
+        success: true,
+        data: updated,
+        message: inspection.status === 'REPORT_GENERATED' || inspection.status === 'COMPLETED'
+          ? 'Revision saved. Please regenerate PDF to finalize version.'
+          : 'Draft synced successfully'
       });
     }
 
-    // Update with new data
+    // 4. Handle other metadata/status updates
+    const updated = await prisma.inspection.update({
+      where: { id: inspectionId },
+      data: {
+        status: status || inspection.status,
+        auditLog: {
+          create: {
+            action: 'MODIFIED_BY_ADMIN',
+            changedFields: req.body,
+            changedBy: userId
+          }
+        }
+      }
+    });
+
+    res.json({ success: true, data: updated });
+  } catch (error) {
+    console.error('Error in PUT /inspections/:id:', error);
+    res.status(500).json({ success: false, message: 'Failed to update inspection', error: error.message });
+  }
+});
+
+// Keep PATCH for backward compatibility if any client uses it
+router.patch('/:inspectionId', authMiddleware, requireRole('INSPECTOR'), async (req, res) => {
+  // redirecting to PUT logic or just copying it
+  try {
+    const { inspectionId } = req.params;
+    const { id: userId } = req.user;
+    const { inspectionJson } = req.body;
+
+    const inspection = await prisma.inspection.findUnique({ where: { id: inspectionId } });
+    if (!inspection) return res.status(404).json({ success: false, message: 'Inspection not found' });
+    if (inspection.performedById !== userId) return res.status(403).json({ success: false, message: 'Access denied' });
+
     const updated = await prisma.inspection.update({
       where: { id: inspectionId },
       data: {
         inspectionJson,
-        auditLog: {
-          create: {
-            action: 'MODIFIED',
-            changedBy: userId
-          }
-        }
-      },
+        auditLog: { create: { action: 'MODIFIED', changedBy: userId } }
+      }
+    });
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+
+/**
+ * @route   GET /api/inspections/:inspectionId/report-data
+ * @desc    Get transformed report data for instant preview
+ * @access  Private (ADMIN)
+ */
+router.get('/:inspectionId/report-data', authMiddleware, requireRole('ADMIN'), async (req, res) => {
+  try {
+    const { inspectionId } = req.params;
+
+    // Fetch full inspection data including task and performedBy
+    const inspection = await prisma.inspection.findUnique({
+      where: { id: inspectionId },
       include: {
         task: true,
-        performedBy: { select: { id: true, name: true } }
+        performedBy: true
       }
     });
 
-    res.json({
-      success: true,
-      message: 'Inspection updated successfully',
-      data: updated
-    });
+    if (!inspection) {
+      return res.status(404).json({ success: false, message: 'Inspection not found' });
+    }
+
+    // Prepare data the same way as POST /report
+    const json = inspection.inspectionJson || {};
+    const preparedData = {
+      ...json,
+      inspection_id: inspection.inspectionNumber,
+      client_name: inspection.task?.clientName || json.client_name,
+      property_address: inspection.task?.propertyAddress || json.property_address,
+      performedBy: inspection.performedBy,
+      inspectorName: inspection.performedBy?.name,
+      inspectionDate: inspection.submittedAt || inspection.updatedAt
+    };
+
+    const transformedData = pdfService.transformInspectionData(preparedData);
+    res.json({ success: true, data: transformedData });
   } catch (error) {
-    console.error('Error updating inspection:', error);
-    res.status(500).json({ success: false, message: 'Failed to update inspection' });
+    console.error('Error fetching report data:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch report data' });
   }
 });
 
@@ -544,9 +665,17 @@ router.post('/:inspectionId/report', authMiddleware, async (req, res) => {
       }
     };
 
-    // Generate PDF
-    // We define path relative to server root: uploads/pdfs/<number>.pdf
-    const filename = `${inspection.inspectionNumber}.pdf`;
+    // Determine version number BEFORE generating PDF so filename includes it
+    const versionCount = await prisma.reportVersion.count({
+      where: { inspectionId }
+    });
+    const nextVersion = versionCount + 1;
+
+    // Generate versioned PDF filename (V1 = original name, V2+ = name_v2.pdf)
+    const baseNumber = inspection.inspectionNumber;
+    const filename = nextVersion === 1
+      ? `${baseNumber}.pdf`
+      : `${baseNumber}_v${nextVersion}.pdf`;
     const pdfPath = path.resolve(__dirname, '../../uploads/pdfs', filename);
     const pdfUrl = `/uploads/pdfs/${filename}`;
 
@@ -556,17 +685,29 @@ router.post('/:inspectionId/report', authMiddleware, async (req, res) => {
       fs.mkdirSync(pdfDir, { recursive: true });
     }
 
-    await generatePDF(reportData, pdfPath);
+    await pdfService.generatePDF(reportData, pdfPath);
 
-    // Update inspection record
+    // Update inspection record and create version snapshot
     await prisma.inspection.update({
       where: { id: inspectionId },
       data: {
         pdfPath: pdfPath,
         pdfUrl: pdfUrl,
+        status: 'REPORT_GENERATED',
+        versions: {
+          create: {
+            versionNumber: nextVersion,
+            inspectionJson: json,
+            pdfPath: pdfPath,
+            pdfUrl: pdfUrl,
+            remarks: nextVersion === 1 ? 'Initial Generation' : `Revision V${nextVersion}`,
+            createdById: userId
+          }
+        },
         auditLog: {
           create: {
             action: 'REPORT_GENERATED',
+            changedFields: { version: nextVersion },
             changedBy: userId
           }
         }
@@ -575,8 +716,9 @@ router.post('/:inspectionId/report', authMiddleware, async (req, res) => {
 
     // Send the file directly to the client
     if (fs.existsSync(pdfPath)) {
+      const isPreview = req.query.preview === 'true';
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Disposition', `${isPreview ? 'inline' : 'attachment'}; filename="${filename}"`);
       res.sendFile(pdfPath);
     } else {
       throw new Error('PDF file was not created on disk');
@@ -585,6 +727,41 @@ router.post('/:inspectionId/report', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error('Error generating report:', error);
     res.status(500).json({ success: false, message: 'Failed to generate report', error: error.message });
+  }
+});
+
+/**
+ * @route   GET /api/inspections/:inspectionId/versions
+ * @desc    Get version history for an inspection
+ * @access  Private
+ */
+router.get('/:inspectionId/versions', authMiddleware, async (req, res) => {
+  try {
+    const { inspectionId } = req.params;
+    const { id: userId, role } = req.user;
+
+    const inspection = await prisma.inspection.findUnique({
+      where: { id: inspectionId },
+      include: {
+        versions: {
+          orderBy: { versionNumber: 'desc' }
+        }
+      }
+    });
+
+    if (!inspection) {
+      return res.status(404).json({ success: false, message: 'Inspection not found' });
+    }
+
+    // Access control
+    if (role === 'INSPECTOR' && inspection.performedById !== userId) {
+      return res.status(403).json({ success: false, message: 'Access denied' });
+    }
+
+    res.json({ success: true, data: inspection.versions });
+  } catch (error) {
+    console.error('Error fetching versions:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch versions' });
   }
 });
 

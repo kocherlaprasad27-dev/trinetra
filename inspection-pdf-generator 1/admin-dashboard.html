@@ -5,8 +5,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Inspection Management</title>
-    <script src="toast.js"></script>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #3b82f6;
+            --primary-gradient: linear-gradient(135deg, #1d4ed8, #3b82f6);
+            --sidebar-bg: linear-gradient(180deg, #0f172a 0%, #1a2e5a 100%);
+            --sidebar-active: rgba(59, 130, 246, 0.9);
+            --page-bg: #f0f4ff;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06);
+        }
+
+
         * {
             margin: 0;
             padding: 0;
@@ -14,9 +45,10 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f5f5;
-            color: #333;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: var(--page-bg);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
         }
 
         .container {
@@ -24,68 +56,97 @@
             height: 100vh;
         }
 
-        /* Sidebar */
+        /* ===================== SIDEBAR ===================== */
         .sidebar {
-            width: 250px;
-            background: #1e3c72;
+            width: 260px;
+            background: var(--sidebar-bg);
             color: white;
-            padding: 20px;
+            padding: 24px 16px;
             overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
         }
 
         .sidebar h2 {
-            margin-bottom: 30px;
-            font-size: 18px;
-            border-bottom: 2px solid #0ea5e9;
-            padding-bottom: 10px;
+            margin-bottom: 28px;
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-md);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .sidebar nav {
+            flex: 1;
         }
 
         .sidebar nav a {
-            display: block;
-            padding: 12px 15px;
-            margin: 5px 0;
-            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 16px;
+            margin: 4px 0;
+            color: rgba(255, 255, 255, 0.75);
             text-decoration: none;
-            border-radius: 5px;
-            transition: background 0.3s;
+            border-radius: var(--radius-md);
+            transition: all 0.2s ease;
             cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
         }
 
-        .sidebar nav a:hover,
+        .sidebar nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            transform: translateX(2px);
+        }
+
         .sidebar nav a.active {
-            background: #0ea5e9;
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
         }
 
         .user-info {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: auto;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.06);
+            padding: 14px;
+            border-radius: var(--radius-md);
+            margin-top: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .user-info p {
-            margin: 5px 0;
+            margin: 4px 0;
             font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
         }
 
         .logout-btn {
             width: 100%;
-            padding: 10px;
-            background: #ef4444;
-            border: none;
-            color: white;
-            border-radius: 5px;
+            padding: 9px;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            border-radius: var(--radius-sm);
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
         }
 
         .logout-btn:hover {
-            background: #dc2626;
+            background: #ef4444;
+            color: white;
+            border-color: #ef4444;
         }
 
-        /* Main Content */
+        /* ===================== MAIN CONTENT ===================== */
         .main-content {
             flex: 1;
             display: flex;
@@ -95,20 +156,29 @@
 
         .header {
             background: white;
-            padding: 20px;
-            border-bottom: 1px solid #e0e0e0;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 18px 28px;
+            border-bottom: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .header h1 {
             margin: 0;
-            color: #1e3c72;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .content {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
+            padding: 24px;
         }
 
         .section {
@@ -119,42 +189,59 @@
             display: block;
         }
 
-        /* Cards */
+        /* ===================== CARDS ===================== */
         .card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            margin-bottom: 20px;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
         }
 
         .card h2 {
-            color: #1e3c72;
+            color: var(--text-primary);
             margin-bottom: 20px;
-            font-size: 18px;
+            font-size: 17px;
+            font-weight: 700;
         }
 
-        /* Forms */
+        /* ===================== FORMS ===================== */
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 16px;
+            position: relative;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-            color: #333;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            color: #374151;
+            letter-spacing: 0.2px;
         }
 
         .form-group input,
         .form-group select,
         .form-group textarea {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+            padding: 10px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
             font-size: 14px;
-            font-family: inherit;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-primary);
+            background: #fafbff;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+            background: white;
         }
 
         .password-container {
@@ -167,7 +254,7 @@
             top: 50%;
             transform: translateY(-50%);
             cursor: pointer;
-            color: #666;
+            color: #94a3b8;
             font-size: 14px;
             user-select: none;
             background: rgba(255, 255, 255, 0.9);
@@ -176,110 +263,137 @@
         }
 
         .password-toggle:hover {
-            color: #333;
+            color: var(--text-primary);
         }
 
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #0ea5e9;
-            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
-        }
-
-        /* Buttons */
+        /* ===================== BUTTONS ===================== */
         .btn {
-            padding: 10px 20px;
+            padding: 9px 20px;
             border: none;
-            border-radius: 5px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: background 0.3s;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease;
+            letter-spacing: 0.2px;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
         }
 
         .btn-primary {
-            background: #0ea5e9;
+            background: var(--primary-gradient);
             color: white;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
         }
 
         .btn-primary:hover {
-            background: #0284c7;
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
         }
 
         .btn-secondary {
-            background: #6b7280;
-            color: white;
+            background: #f1f5f9;
+            color: #374151;
+            border: 1px solid var(--border);
         }
 
         .btn-secondary:hover {
-            background: #4b5563;
+            background: #e2e8f0;
         }
 
         .btn-danger {
-            background: #ef4444;
+            background: linear-gradient(135deg, #dc2626, #ef4444);
             color: white;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
         }
 
         .btn-danger:hover {
-            background: #dc2626;
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
         }
 
         .btn-success {
-            background: #10b981;
+            background: linear-gradient(135deg, #059669, #10b981);
             color: white;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
         }
 
         .btn-success:hover {
-            background: #059669;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
         }
 
         .btn-group {
             display: flex;
             gap: 10px;
             margin-top: 20px;
+            flex-wrap: wrap;
         }
 
-        /* Tables */
+        /* ===================== TABLES ===================== */
         .table-responsive {
             overflow-x: auto;
         }
 
         table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
             font-size: 14px;
         }
 
         table thead {
-            background: #f3f4f6;
-            border-bottom: 2px solid #e0e0e0;
+            background: #f8faff;
         }
 
         table th {
-            padding: 12px;
+            padding: 13px 16px;
             text-align: left;
-            font-weight: 600;
-            color: #1e3c72;
+            font-weight: 700;
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        table th:first-child {
+            border-radius: var(--radius-sm) 0 0 0;
+        }
+
+        table th:last-child {
+            border-radius: 0 var(--radius-sm) 0 0;
         }
 
         table td {
-            padding: 12px;
-            border-bottom: 1px solid #e0e0e0;
+            padding: 13px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            color: var(--text-primary);
+            font-size: 14px;
         }
 
-        table tr:hover {
-            background: #f9fafb;
+        table tr:hover td {
+            background: #f8faff;
         }
 
-        /* Status badges */
+        table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* ===================== BADGES ===================== */
         .badge {
-            display: inline-block;
-            padding: 4px 12px;
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 11px;
             border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 11px;
+            font-weight: 700;
             text-transform: uppercase;
+            letter-spacing: 0.4px;
         }
 
         .badge-pending {
@@ -288,7 +402,7 @@
         }
 
         .badge-in-progress {
-            background: #bfdbfe;
+            background: #dbeafe;
             color: #1e40af;
         }
 
@@ -298,14 +412,13 @@
         }
 
         .badge-final {
-            background: #fcd34d;
+            background: #fef9c3;
             color: #713f12;
-            font-weight: bold;
         }
 
         .badge-completed {
-            background: #dbeafe;
-            color: #0c4a6e;
+            background: #ede9fe;
+            color: #4c1d95;
         }
 
         .badge-rejected {
@@ -313,15 +426,18 @@
             color: #991b1b;
         }
 
-        /* Modal */
+        .badge-info {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+        /* ===================== MODAL ===================== */
         .modal {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
+            inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(6px);
             z-index: 1000;
             align-items: center;
             justify-content: center;
@@ -333,63 +449,83 @@
 
         .modal-content {
             background: white;
-            border-radius: 8px;
-            padding: 30px;
+            border-radius: var(--radius-xl);
+            padding: 32px;
             max-width: 500px;
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            animation: modalSlideIn 0.25s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-16px) scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
         .modal-header {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
         }
 
         .modal-header h2 {
             margin: 0;
-            color: #1e3c72;
+            font-size: 18px;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .close-btn {
             position: absolute;
-            top: 15px;
-            right: 15px;
-            background: none;
+            top: 16px;
+            right: 16px;
+            background: #f1f5f9;
             border: none;
-            font-size: 24px;
+            font-size: 18px;
             cursor: pointer;
-            color: #999;
+            color: var(--text-secondary);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
         }
 
         .close-btn:hover {
-            color: #333;
+            background: #fee2e2;
+            color: #ef4444;
         }
 
-        /* Inspector search */
-        .search-input {
-            position: relative;
-            margin-bottom: 15px;
-        }
-
-        .form-group {
-            position: relative;
-        }
-
+        /* ===================== SEARCH ===================== */
         .search-results {
             position: absolute;
             top: 100%;
             left: 0;
             right: 0;
             background: white;
-            border: 1px solid #ddd;
+            border: 1.5px solid var(--border);
             border-top: none;
-            border-radius: 0 0 5px 5px;
+            border-radius: 0 0 var(--radius-sm) var(--radius-sm);
             max-height: 200px;
             overflow-y: auto;
             z-index: 100;
             display: none;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow-md);
         }
 
         .search-results.active {
@@ -397,59 +533,73 @@
         }
 
         .search-result-item {
-            padding: 10px 15px;
-            border-bottom: 1px solid #e0e0e0;
+            padding: 10px 14px;
+            border-bottom: 1px solid #f1f5f9;
             cursor: pointer;
+            font-size: 14px;
+            transition: background 0.15s;
         }
 
         .search-result-item:hover {
-            background: #f5f5f5;
+            background: #f8faff;
+            color: var(--primary);
         }
 
-        .search-result-item:hover {
-            background: #f3f4f6;
-        }
-
-        /* Statistics */
+        /* ===================== STAT CARDS ===================== */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: 16px;
+            margin-bottom: 24px;
         }
 
         .stat-card {
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 4px solid #0ea5e9;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px 24px;
+            border-radius: var(--radius-lg);
+            border-left: 4px solid var(--primary);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--primary);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
         }
 
         .stat-card h3 {
-            color: #666;
-            font-size: 12px;
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 700;
             text-transform: uppercase;
+            letter-spacing: 0.8px;
             margin-bottom: 10px;
         }
 
         .stat-card .value {
-            font-size: 28px;
-            font-weight: bold;
-            color: #1e3c72;
+            font-size: 30px;
+            font-weight: 800;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        /* Loading & Messages */
+        /* ===================== LOADING / ALERTS ===================== */
         .loading {
             text-align: center;
             padding: 40px;
-            color: #999;
+            color: var(--text-muted);
         }
 
         .alert {
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 15px;
+            padding: 14px 18px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 16px;
+            font-size: 14px;
+            font-weight: 500;
         }
 
         .alert-success {
@@ -476,16 +626,13 @@
             border: 1px solid #bfdbfe;
         }
 
-        /* Premium Loader */
+        /* ===================== PDF LOADER ===================== */
         .pdf-loader-overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(8px);
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(10px);
             z-index: 10000;
             align-items: center;
             justify-content: center;
@@ -499,45 +646,43 @@
         }
 
         .pdf-loader-card {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 40px 60px;
-            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 44px 64px;
+            border-radius: 24px;
             text-align: center;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-            animation: fadeIn 0.5s ease-out;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+            animation: fadeIn 0.4s ease-out;
         }
 
         .pdf-loader-spinner {
-            width: 60px;
-            height: 60px;
+            width: 56px;
+            height: 56px;
             border: 4px solid rgba(255, 255, 255, 0.1);
-            border-top: 4px solid #0ea5e9;
+            border-top: 4px solid #3b82f6;
             border-radius: 50%;
             margin: 0 auto 20px;
-            animation: spin-loader 1s infinite cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            animation: spin-loader 0.9s infinite linear;
         }
 
         .pdf-loader-text {
-            font-size: 18px;
-            font-weight: 600;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
         }
 
         .pdf-loader-subtext {
             font-size: 13px;
-            opacity: 0.7;
-            font-weight: 400;
+            opacity: 0.65;
         }
 
         @keyframes spin-loader {
-            0% {
+            from {
                 transform: rotate(0deg);
             }
 
-            100% {
+            to {
                 transform: rotate(360deg);
             }
         }
@@ -545,7 +690,7 @@
         @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: scale(0.9);
+                transform: scale(0.92);
             }
 
             to {
@@ -554,31 +699,50 @@
             }
         }
 
-        /* ==================== RESPONSIVE STYLES ==================== */
+        /* ===================== DIM INPUTS (dimensions) ===================== */
+        .dim-input {
+            width: 100%;
+            flex: 1;
+            padding: 8px 10px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            box-sizing: border-box;
+            transition: all 0.2s;
+            background: #fafbff;
+            color: var(--text-primary);
+        }
 
+        .dim-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            background: white;
+        }
+
+        /* ===================== MOBILE RESPONSIVE ===================== */
         .mobile-toggle {
             display: none;
             position: fixed;
             top: 15px;
             right: 15px;
             z-index: 1001;
-            background: #1e3c72;
+            background: var(--primary);
             color: white;
             padding: 10px;
-            border-radius: 5px;
+            border-radius: var(--radius-sm);
             border: none;
             cursor: pointer;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            box-shadow: var(--shadow-md);
+            font-size: 18px;
         }
 
         .sidebar-overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
             z-index: 999;
             backdrop-filter: blur(2px);
         }
@@ -586,12 +750,12 @@
         @media (max-width: 1200px) {
             .sidebar {
                 position: fixed;
-                left: -250px;
+                left: -270px;
                 top: 0;
                 bottom: 0;
                 z-index: 1000;
                 transition: left 0.3s ease;
-                box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+                box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
             }
 
             .sidebar.active {
@@ -599,7 +763,9 @@
             }
 
             .mobile-toggle {
-                display: block;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
 
             .sidebar-overlay.active {
@@ -617,7 +783,6 @@
 
             .header {
                 padding-right: 70px;
-                /* Room for toggle */
             }
         }
 
@@ -627,14 +792,13 @@
             }
 
             .content {
-                padding: 15px;
+                padding: 16px;
             }
 
             .card {
-                padding: 15px;
+                padding: 16px;
             }
 
-            /* Responsive Tables */
             table,
             thead,
             tbody,
@@ -646,55 +810,57 @@
 
             table thead {
                 display: none;
-                /* Hide headers */
             }
 
             table tr {
-                margin-bottom: 20px;
-                border: 1px solid #e0e0e0;
-                border-radius: 8px;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+                margin-bottom: 16px;
+                border: 1px solid var(--border);
+                border-radius: var(--radius-md);
                 overflow: hidden;
+                box-shadow: var(--shadow-sm);
             }
 
             table td {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                padding: 12px 15px;
+                padding: 11px 14px;
                 border: none;
-                border-bottom: 1px solid #f0f0f0;
+                border-bottom: 1px solid #f1f5f9;
                 text-align: right;
             }
 
             table td::before {
                 content: attr(data-label);
                 font-weight: 700;
-                color: #1e3c72;
+                color: var(--text-secondary);
                 text-align: left;
-                padding-right: 15px;
+                padding-right: 12px;
+                font-size: 12px;
+                text-transform: uppercase;
+                letter-spacing: 0.4px;
             }
 
             table td:last-child {
                 border-bottom: none;
-                background: #f9fafb;
+                background: #f8faff;
                 justify-content: center;
-                gap: 10px;
+                gap: 8px;
             }
 
             .btn {
-                padding: 8px 12px;
+                padding: 8px 14px;
                 font-size: 13px;
             }
         }
 
-        /* Landscape/Tablet fixes */
         @media (max-height: 500px) and (orientation: landscape) {
             .sidebar {
                 padding-top: 60px;
             }
         }
     </style>
+    <script src="toast.js"></script>
 </head>
 
 <body>
@@ -713,10 +879,12 @@
         <div class="sidebar">
             <h2>Admin Panel</h2>
             <nav>
-                <a class="nav-link active" onclick="switchSection('dashboard')">📊 Dashboard</a>
-                <a class="nav-link" onclick="switchSection('inspectors')">👥 Inspectors</a>
-                <a class="nav-link" onclick="switchSection('tasks')">📋 Tasks</a>
-                <a class="nav-link" onclick="switchSection('inspections')">🔍 Inspections</a>
+                <a class="nav-link active" onclick="switchSection('dashboard')">Dashboard</a>
+                <a class="nav-link" onclick="switchSection('inspectors')">Inspectors</a>
+                <a class="nav-link" onclick="switchSection('tasks')">Tasks</a>
+                <a class="nav-link" onclick="switchSection('inspections')">Inspections</a>
+                <a class="nav-link" onclick="switchSection('templates')">Room Templates</a>
+                <a class="nav-link" onclick="switchSection('branding')">Branding</a>
             </nav>
             <div class="user-info">
                 <p><strong id="userName">Admin</strong></p>
@@ -764,6 +932,272 @@
                     <div class="card">
                         <h2>All Inspections</h2>
                         <div id="inspectionsList"></div>
+                    </div>
+                </div>
+
+                <!-- Room Templates Section -->
+                <div id="templates" class="section">
+                    <div class="card">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h2 style="margin: 0;">Room Templates</h2>
+                            <button class="btn btn-primary" onclick="openTemplateModal()">+ Add Template</button>
+                        </div>
+                        <div id="templatesList"></div>
+                    </div>
+                </div>
+
+                <!-- Property Template Modal -->
+                <div id="templateModal" class="modal">
+                    <div class="modal-content" style="max-width: 900px; width: 95%;">
+                        <span class="close-btn" onclick="closeTemplateModal()">&times;</span>
+                        <div class="modal-header">
+                            <h2 id="templateModalTitle">Add Property Template</h2>
+                        </div>
+
+                        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                            <!-- Left: Template Info & Room Form -->
+                            <div style="flex: 1; min-width: 300px;">
+                                <div class="form-group">
+                                    <label for="tempName">Template Name *</label>
+                                    <input type="text" id="tempName" placeholder="e.g. Rainbow Villas, Standard 2BHK">
+                                </div>
+                                <div class="form-group">
+                                    <label for="tempDesc">Description</label>
+                                    <input type="text" id="tempDesc" placeholder="Optional description">
+                                </div>
+
+                                <div
+                                    style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 20px;">
+                                    <h3
+                                        style="font-size: 16px; margin-bottom: 15px; color: #1e3c72; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">
+                                        Add Room to Template</h3>
+
+                                    <div class="form-group">
+                                        <label>Room Name *</label>
+                                        <input type="text" id="roomTempName" placeholder="e.g. Master Bedroom">
+                                    </div>
+
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                        <div class="form-group">
+                                            <label>Wall Finish</label>
+                                            <select id="roomTempWall">
+                                                <option value="">Select...</option>
+                                                <option value="Plastic Emulsion Paint">Plastic Emulsion Paint</option>
+                                                <option value="Ceramic Tiles">Ceramic Tiles</option>
+                                                <option value="Wallpaper">Wallpaper</option>
+                                                <option value="NA">NA</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Flooring</label>
+                                            <select id="roomTempFloor">
+                                                <option value="">Select...</option>
+                                                <option value="Vitrified Tiles">Vitrified Tiles</option>
+                                                <option value="Antiskid Tiles">Antiskid Tiles</option>
+                                                <option value="Ceramic Tiles">Ceramic Tiles</option>
+                                                <option value="Marble">Marble</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Standard Remarks</label>
+                                        <textarea id="roomTempRemarks" rows="2"
+                                            placeholder="Pre-filled remarks..."></textarea>
+                                    </div>
+
+                                    <!-- Dimensions -->
+                                    <div style="margin-top: 10px;">
+                                        <label style="font-size: 12px; font-weight: bold; color: #64748b;">Default
+                                            Dimensions (Optional)</label>
+
+                                        <!-- Room Dimensions (L x W) - multiple allowed -->
+                                        <div style="margin-top: 8px;">
+                                            <div
+                                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                                <label style="font-size: 11px; font-weight: 600; color: #1e3c72;">Room
+                                                    Dimensions (L x W)</label>
+                                                <button type="button" class="btn btn-secondary"
+                                                    style="font-size: 10px; padding: 2px 6px;"
+                                                    onclick="addDimRow('roomDimsContainer', 'room')">+ Add</button>
+                                            </div>
+                                            <div id="roomDimsContainer">
+                                                <div class="dim-row"
+                                                    style="display: flex; gap: 5px; margin-bottom: 5px;">
+                                                    <input type="number" class="dim-input room-h"
+                                                        placeholder="L (length)">
+                                                    <input type="number" class="dim-input room-w"
+                                                        placeholder="W (width)">
+                                                    <button type="button" class="btn btn-secondary"
+                                                        style="padding: 0 8px; visibility: hidden;"
+                                                        onclick="removeDimRow(this)">×</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div
+                                            style="display: grid; grid-template-columns: 1fr 2fr; gap: 10px; margin-top: 10px;">
+                                            <div>
+                                                <label style="font-size: 11px;">Ceiling (ft)</label>
+                                                <input type="number" id="roomTempCeiling" step="0.1" placeholder="H"
+                                                    class="dim-input">
+                                            </div>
+                                            <div>
+                                                <label style="font-size: 11px;">Tile (L x W)</label>
+                                                <div style="display: flex; gap: 5px;">
+                                                    <input type="number" id="roomTempTileL" placeholder="L"
+                                                        class="dim-input">
+                                                    <input type="number" id="roomTempTileW" placeholder="W"
+                                                        class="dim-input">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div
+                                            style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                                            <div>
+                                                <div
+                                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                                    <label style="font-size: 11px;">Doors (H x W)</label>
+                                                    <button type="button" class="btn btn-secondary"
+                                                        style="font-size: 10px; padding: 2px 6px;"
+                                                        onclick="addDimRow('doorDimsContainer', 'door')">+ Add</button>
+                                                </div>
+                                                <div id="doorDimsContainer">
+                                                    <div class="dim-row"
+                                                        style="display: flex; gap: 5px; margin-bottom: 5px;">
+                                                        <input type="number" class="dim-input door-h" placeholder="H">
+                                                        <input type="number" class="dim-input door-w" placeholder="W">
+                                                        <button type="button" class="btn btn-secondary"
+                                                            style="padding: 0 8px; visibility: hidden;"
+                                                            onclick="removeDimRow(this)">×</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div
+                                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                                    <label style="font-size: 11px;">Windows (H x W)</label>
+                                                    <button type="button" class="btn btn-secondary"
+                                                        style="font-size: 10px; padding: 2px 6px;"
+                                                        onclick="addDimRow('windowDimsContainer', 'window')">+
+                                                        Add</button>
+                                                </div>
+                                                <div id="windowDimsContainer">
+                                                    <div class="dim-row"
+                                                        style="display: flex; gap: 5px; margin-bottom: 5px;">
+                                                        <input type="number" class="dim-input window-h" placeholder="H">
+                                                        <input type="number" class="dim-input window-w" placeholder="W">
+                                                        <button type="button" class="btn btn-secondary"
+                                                            style="padding: 0 8px; visibility: hidden;"
+                                                            onclick="removeDimRow(this)">×</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button type="button" class="btn btn-secondary" onclick="addRoomToTemplate()"
+                                        style="width: 100%; margin-top: 15px;">+ Add Room</button>
+                                </div>
+                            </div>
+
+                            <!-- Right: Room List -->
+                            <div
+                                style="flex: 1; min-width: 300px; background: #f1f5f9; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                <h3 style="font-size: 16px; margin-bottom: 10px; color: #1e3c72;">Rooms in Template
+                                    (<span id="roomCount">0</span>)</h3>
+                                <div id="templateRoomsList"
+                                    style="max-height: 500px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
+                                    <div style="text-align: center; padding: 20px; color: #94a3b8; font-style: italic;">
+                                        No rooms added yet</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            style="margin-top: 20px; text-align: right; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+                            <button class="btn btn-secondary" onclick="closeTemplateModal()">Cancel</button>
+                            <button class="btn btn-primary" onclick="saveTemplate()">Save Template</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Branding Section -->
+                <div id="branding" class="section">
+                    <div class="card">
+                        <h2>Branding — Company Logo</h2>
+                        <p style="color: #666; margin-bottom: 20px; ">Upload a custom logo that appears on the login
+                            page
+                            and in generated PDF reports. Accepted formats: <strong>PNG, JPG</strong> (max 2 MB).</p>
+
+                        <div style="display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap;">
+                            <!-- Logo Preview -->
+                            <div style="text-align: center;">
+                                <p style="font-weight: 600; margin-bottom: 10px; color: #1e3c72;">Current Logo</p>
+                                <div
+                                    style="width: 180px; height: 180px; border: 2px dashed #ddd; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: #fafafa; overflow: hidden;">
+                                    <img id="brandingLogoPreview" src="assets/images/Trinetra.png" alt="Current Logo"
+                                        style="max-width: 160px; max-height: 160px; object-fit: cover;">
+                                </div>
+                                <p id="brandingLogoStatus" style="font-size: 12px; color: #888; margin-top: 8px;">
+                                    Default logo</p>
+                            </div>
+
+                            <!-- Upload Controls -->
+                            <div style="flex: 1; min-width: 280px;">
+                                <div class="form-group">
+                                    <label for="logoFileInput">Select a new logo</label>
+                                    <input type="file" id="logoFileInput" accept=".png,.jpg,.jpeg"
+                                        style="padding: 10px;" onchange="previewSelectedLogo(this)">
+                                    <p style="font-size: 12px; color: #999; margin-top: 5px;">PNG or JPG, max 2 MB</p>
+                                </div>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-primary" onclick="uploadLogo()">Upload
+                                        Logo</button>
+                                    <button type="button" class="btn btn-secondary" onclick="resetLogo()">Reset to
+                                        Default</button>
+                                </div>
+                                <div id="brandingMessage" style="margin-top: 15px;"></div>
+                            </div>
+                        </div>
+
+                        <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
+
+                        <h2>App Icon</h2>
+                        <p style="color: #666; margin-bottom: 20px;">Upload a custom icon for the browser tab (favicon)
+                            and mobile home screen. Accepted formats: <strong>PNG, JPG, ICO</strong> (max 2 MB).</p>
+
+                        <div style="display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap;">
+                            <!-- Icon Preview -->
+                            <div style="text-align: center;">
+                                <p style="font-weight: 600; margin-bottom: 10px; color: #1e3c72;">Current Icon</p>
+                                <div
+                                    style="width: 100px; height: 100px; border: 2px dashed #ddd; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: #fafafa; overflow: hidden; margin: 0 auto;">
+                                    <img id="brandingIconPreview" src="assets/images/icon-192.png" alt="Current Icon"
+                                        style="max-width: 80px; max-height: 80px; object-fit: contain;">
+                                </div>
+                                <p id="brandingIconStatus" style="font-size: 12px; color: #888; margin-top: 8px;">
+                                    Default icon</p>
+                            </div>
+
+                            <!-- Icon Upload Controls -->
+                            <div style="flex: 1; min-width: 280px;">
+                                <div class="form-group">
+                                    <label for="iconFileInput">Select a new icon</label>
+                                    <input type="file" id="iconFileInput" accept=".png,.jpg,.jpeg,.ico"
+                                        style="padding: 10px;" onchange="previewSelectedIcon(this)">
+                                    <p style="font-size: 12px; color: #999; margin-top: 5px;">PNG, JPG, or ICO, max 2 MB
+                                    </p>
+                                </div>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-primary" onclick="uploadIcon()">Upload
+                                        Icon</button>
+                                    <button type="button" class="btn btn-secondary" onclick="resetIcon()">Reset to
+                                        Default</button>
+                                </div>
+                                <div id="iconMessage" style="margin-top: 15px;"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -854,6 +1288,7 @@
         const API_BASE = window.location.origin + "/api";
         let authToken = localStorage.getItem('adminToken');
         let currentUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
+        let allInspectors = []; // Cache for reassignment dropdowns
 
         // Check authentication
         if (!authToken || currentUser.role !== 'ADMIN') {
@@ -878,7 +1313,9 @@
                 dashboard: 'Dashboard',
                 inspectors: 'Manage Inspectors',
                 tasks: 'Inspection Tasks',
-                inspections: 'All Inspections'
+                inspections: 'All Inspections',
+                templates: 'Room Templates',
+                branding: 'Branding'
             };
             document.getElementById('pageTitle').textContent = titles[section];
 
@@ -887,6 +1324,213 @@
             if (section === 'inspectors') loadInspectors();
             if (section === 'tasks') loadTasks();
             if (section === 'inspections') loadInspections();
+            if (section === 'templates') loadTemplates();
+            if (section === 'branding') {
+                loadBrandingLogo();
+                loadBrandingIcon();
+            }
+        }
+
+        // ===================== BRANDING / LOGO =====================
+        async function loadBrandingLogo() {
+            try {
+                const resp = await fetch(`${API_BASE}/settings/logo`);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    document.getElementById('brandingLogoPreview').src = data.logoUrl;
+                    document.getElementById('brandingLogoStatus').textContent =
+                        data.logoUrl.includes('custom-logo') ? 'Custom logo' : 'Default logo';
+                }
+            } catch (e) {
+                console.error('Failed to load branding logo:', e);
+            }
+        }
+
+        function previewSelectedLogo(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('brandingLogoPreview').src = e.target.result;
+                    document.getElementById('brandingLogoStatus').textContent = 'Preview (not saved yet)';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        async function uploadLogo() {
+            const fileInput = document.getElementById('logoFileInput');
+            const msgDiv = document.getElementById('brandingMessage');
+            msgDiv.innerHTML = '';
+
+            if (!fileInput.files.length) {
+                msgDiv.innerHTML = '<div class="alert alert-warning">Please select a file first.</div>';
+                return;
+            }
+
+            const file = fileInput.files[0];
+
+            // Client-side validation
+            const allowed = ['image/png', 'image/jpeg'];
+            if (!allowed.includes(file.type)) {
+                msgDiv.innerHTML = '<div class="alert alert-error">Invalid file type. Only PNG and JPG are allowed.</div>';
+                return;
+            }
+            if (file.size > 2 * 1024 * 1024) {
+                msgDiv.innerHTML = '<div class="alert alert-error">File too large. Maximum size is 2 MB.</div>';
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('logo', file);
+
+                const resp = await fetch(`${API_BASE}/settings/logo`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` },
+                    body: formData
+                });
+
+                const data = await resp.json();
+                if (resp.ok && data.success) {
+                    document.getElementById('brandingLogoPreview').src = data.logoUrl + '?t=' + Date.now();
+                    document.getElementById('brandingLogoStatus').textContent = 'Custom logo';
+                    msgDiv.innerHTML = '<div class="alert alert-success">Logo uploaded successfully!</div>';
+                    fileInput.value = '';
+                } else {
+                    msgDiv.innerHTML = `<div class="alert alert-error">${data.message || 'Upload failed.'}</div>`;
+                }
+            } catch (e) {
+                console.error('Logo upload error:', e);
+                msgDiv.innerHTML = '<div class="alert alert-error">Network error. Please try again.</div>';
+            }
+        }
+
+        async function resetLogo() {
+            const msgDiv = document.getElementById('brandingMessage');
+            msgDiv.innerHTML = '';
+
+            if (!confirm('Reset logo to default? This will delete your custom logo.')) return;
+
+            try {
+                const resp = await fetch(`${API_BASE}/settings/logo`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                const data = await resp.json();
+                if (resp.ok && data.success) {
+                    document.getElementById('brandingLogoPreview').src = data.logoUrl + '?t=' + Date.now();
+                    document.getElementById('brandingLogoStatus').textContent = 'Default logo';
+                    document.getElementById('logoFileInput').value = '';
+                    msgDiv.innerHTML = '<div class="alert alert-success">Logo reset to default.</div>';
+                } else {
+                    msgDiv.innerHTML = `<div class="alert alert-error">${data.message || 'Reset failed.'}</div>`;
+                }
+            } catch (e) {
+                console.error('Logo reset error:', e);
+                msgDiv.innerHTML = '<div class="alert alert-error">Network error. Please try again.</div>';
+            }
+        }
+
+        // ===================== APP ICON LOGIC =====================
+        async function loadBrandingIcon() {
+            try {
+                const resp = await fetch(`${API_BASE}/settings/icon`);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    document.getElementById('brandingIconPreview').src = data.iconUrl;
+                    document.getElementById('brandingIconStatus').textContent =
+                        data.iconUrl.includes('custom-icon') ? 'Custom icon' : 'Default icon';
+                }
+            } catch (e) {
+                console.error('Failed to load branding icon:', e);
+            }
+        }
+
+        function previewSelectedIcon(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('brandingIconPreview').src = e.target.result;
+                    document.getElementById('brandingIconStatus').textContent = 'Preview (not saved yet)';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        async function uploadIcon() {
+            const fileInput = document.getElementById('iconFileInput');
+            const msgDiv = document.getElementById('iconMessage');
+            msgDiv.innerHTML = '';
+
+            if (!fileInput.files.length) {
+                msgDiv.innerHTML = '<div class="alert alert-warning">Please select a file first.</div>';
+                return;
+            }
+
+            const file = fileInput.files[0];
+
+            // Client-side validation
+            const allowed = ['image/png', 'image/jpeg', 'image/x-icon', 'image/vnd.microsoft.icon'];
+            if (!allowed.includes(file.type)) {
+                msgDiv.innerHTML = '<div class="alert alert-error">Invalid file type. Only PNG, JPG, and ICO are allowed.</div>';
+                return;
+            }
+            if (file.size > 2 * 1024 * 1024) {
+                msgDiv.innerHTML = '<div class="alert alert-error">File too large. Maximum size is 2 MB.</div>';
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('icon', file);
+
+                const resp = await fetch(`${API_BASE}/settings/icon`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` },
+                    body: formData
+                });
+
+                const data = await resp.json();
+                if (resp.ok && data.success) {
+                    document.getElementById('brandingIconPreview').src = data.iconUrl + '?t=' + Date.now();
+                    document.getElementById('brandingIconStatus').textContent = 'Custom icon';
+                    msgDiv.innerHTML = '<div class="alert alert-success">Icon uploaded successfully!</div>';
+                    fileInput.value = '';
+                } else {
+                    msgDiv.innerHTML = `<div class="alert alert-error">${data.message || 'Upload failed.'}</div>`;
+                }
+            } catch (e) {
+                console.error('Icon upload error:', e);
+                msgDiv.innerHTML = '<div class="alert alert-error">Network error. Please try again.</div>';
+            }
+        }
+
+        async function resetIcon() {
+            const msgDiv = document.getElementById('iconMessage');
+            msgDiv.innerHTML = '';
+
+            if (!confirm('Reset icon to default? This will delete your custom icon.')) return;
+
+            try {
+                const resp = await fetch(`${API_BASE}/settings/icon`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                const data = await resp.json();
+                if (resp.ok && data.success) {
+                    document.getElementById('brandingIconPreview').src = data.iconUrl + '?t=' + Date.now();
+                    document.getElementById('brandingIconStatus').textContent = 'Default icon';
+                    document.getElementById('iconFileInput').value = '';
+                    msgDiv.innerHTML = '<div class="alert alert-success">Icon reset to default.</div>';
+                } else {
+                    msgDiv.innerHTML = `<div class="alert alert-error">${data.message || 'Reset failed.'}</div>`;
+                }
+            } catch (e) {
+                console.error('Icon reset error:', e);
+                msgDiv.innerHTML = '<div class="alert alert-error">Network error. Please try again.</div>';
+            }
         }
 
         // Modals
@@ -1019,6 +1663,7 @@
         async function loadDashboard() {
             try {
                 const inspectors = await apiCall('GET', '/inspectors');
+                allInspectors = inspectors.data || []; // Cache for reassign dropdown
                 const tasks = await apiCall('GET', '/tasks');
                 const inspections = await apiCall('GET', '/inspections');
 
@@ -1050,10 +1695,14 @@
                             <td data-label="Client">${i.task?.clientName || 'N/A'}</td>
                             <td data-label="Inspector">${i.performedBy?.name || 'N/A'}</td>
                             <td data-label="Status"><span class="badge badge-${i.status.toLowerCase()}">${i.status}</span></td>
-                            <td data-label="Action">
-                                ${canGeneratePDF ? `
-                                    <button class="btn btn-success" onclick="generatePDF('${i.id}')">Generate PDF</button>
-                                ` : 'N/A'}
+                            <td data-label="Action" id="action-${i.id}">
+                                <div class="btn-group">
+                                    ${canGeneratePDF ? `
+                                        <button class="btn btn-success" onclick="generatePDF('${i.id}')">PDF</button>
+                                        <button class="btn btn-info" style="background:#0ea5e9; color:white; border:none; border-radius:4px; padding:6px 10px; cursor:pointer;" onclick="previewPDF('${i.id}')">Preview</button>
+                                    ` : ''}
+                                    <button class="btn btn-secondary" onclick="toggleReassign('${i.id}', 'action-${i.id}')">Reassign</button>
+                                </div>
                             </td>
                         </tr>
                     `;
@@ -1360,9 +2009,19 @@
                         <td data-label="Inspector">${i.performedBy?.name || 'N/A'}</td>
                         <td data-label="Status"><span class="badge badge-${i.status.toLowerCase()}">${i.status}</span></td>
                         <td data-label="Score">${i.overallScore !== null ? i.overallScore : 'N/A'}</td>
-                        <td data-label="Action">
-                            ${canGeneratePDF ? `<button class="btn btn-success" onclick="generatePDF('${i.id}')">📄 Generate PDF</button>` : `<span style="color: #999;">${statusText}</span>`}
-                            <button class="btn btn-secondary" onclick="viewInspection('${i.id}')">👁️ View</button>
+                        <td data-label="Action" id="full-action-${i.id}">
+                            <div class="btn-group" style="margin-top:0">
+                                ${canGeneratePDF ? `
+                                    <button class="btn btn-success" onclick="generatePDF('${i.id}')">PDF</button>
+                                    <button class="btn btn-info" style="background:#0ea5e9; color:white; border:none; border-radius:4px; padding:6px 12px; cursor:pointer;" onclick="previewPDF('${i.id}')">Preview</button>
+                                    <button class="btn" style="background:#8b5cf6; color:white; border:none; border-radius:4px; padding:6px 12px; cursor:pointer;" onclick="showVersionHistory('${i.id}', '${i.inspectionNumber}')">Versions</button>
+                                ` : ''}
+                                ${['REPORT_GENERATED', 'COMPLETED', 'SUBMITTED', 'FINAL'].includes(i.status) ? `
+                                    <button class="btn" style="background:#f59e0b; color:white; border:none; border-radius:4px; padding:6px 12px; cursor:pointer; font-weight:600;" onclick="editInspection('${i.id}')">✏️ Edit</button>
+                                ` : ''}
+                                <button class="btn btn-secondary" onclick="viewInspection('${i.id}')">View</button>
+                                <button class="btn btn-primary" style="background:#4b5563" onclick="toggleReassign('${i.id}', 'full-action-${i.id}')">Reassign</button>
+                            </div>
                         </td>
                     </tr>
                     `;
@@ -1392,7 +2051,127 @@
             }
         }
 
+        // Reassignment Logic
+        function toggleReassign(inspectionId, containerId) {
+            const container = document.getElementById(containerId);
+            const originalContent = container.innerHTML;
+
+            const options = allInspectors.map(ins => `<option value="${ins.id}">${ins.name}</option>`).join('');
+
+            container.innerHTML = `
+                <div style="display: flex; gap: 5px; align-items: center;">
+                    <select id="select-${inspectionId}" class="form-group" style="margin-bottom:0; padding: 5px; font-size: 12px; width: 120px;">
+                        <option value="">Select...</option>
+                        ${options}
+                    </select>
+                    <button class="btn btn-primary" style="padding: 5px 10px; font-size: 11px;" onclick="saveAssignment('${inspectionId}', '${containerId}')">Save</button>
+                    <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 11px;" onclick="cancelReassign('${inspectionId}', '${containerId}', \`${originalContent.replace(/"/g, '&quot;')}\`)">✕</button>
+                </div>
+            `;
+        }
+
+        function cancelReassign(inspectionId, containerId, originalHtml) {
+            document.getElementById(containerId).innerHTML = originalHtml;
+        }
+
+        async function saveAssignment(inspectionId, containerId) {
+            const select = document.getElementById(`select-${inspectionId}`);
+            const newInspectorId = select.value;
+
+            if (!newInspectorId) {
+                showToast('Please select an inspector', 'error');
+                return;
+            }
+
+            try {
+                await apiCall('PUT', `/inspections/${inspectionId}`, { performedById: newInspectorId });
+                showToast('Inspection reassigned successfully!', 'success');
+                // Refresh both to be sure
+                loadDashboard();
+                loadInspections();
+            } catch (error) {
+                showToast('Failed to reassign: ' + error.message, 'error');
+            }
+        }
+
+        // ── Version History ──
+        async function showVersionHistory(inspectionId, inspectionNumber) {
+            try {
+                const res = await apiCall('GET', `/inspections/${inspectionId}/versions`);
+                const versions = res.data || [];
+
+                let content;
+                if (versions.length === 0) {
+                    content = '<p style="text-align:center; color:#94a3b8; padding:30px;">No versions yet. Generate a PDF to create the first version.</p>';
+                } else {
+                    content = `<table style="width:100%; border-collapse:collapse;">
+                        <thead><tr>
+                            <th style="padding:10px; text-align:left; border-bottom:2px solid #e2e8f0;">Version</th>
+                            <th style="padding:10px; text-align:left; border-bottom:2px solid #e2e8f0;">Date</th>
+                            <th style="padding:10px; text-align:left; border-bottom:2px solid #e2e8f0;">Remarks</th>
+                            <th style="padding:10px; text-align:center; border-bottom:2px solid #e2e8f0;">Download</th>
+                        </tr></thead>
+                        <tbody>${versions.map(v => `<tr>
+                            <td style="padding:10px; border-bottom:1px solid #f1f5f9; font-weight:700; color:#1e3c72;">V${v.versionNumber}</td>
+                            <td style="padding:10px; border-bottom:1px solid #f1f5f9;">${new Date(v.createdAt).toLocaleString()}</td>
+                            <td style="padding:10px; border-bottom:1px solid #f1f5f9;">${v.remarks || '-'}</td>
+                            <td style="padding:10px; border-bottom:1px solid #f1f5f9; text-align:center;">
+                                ${v.pdfUrl ? `<a href="${API_BASE.replace('/api', '')}${v.pdfUrl}" target="_blank" style="color:#0ea5e9; font-weight:600;">⬇ PDF</a>` : 'N/A'}
+                            </td>
+                        </tr>`).join('')}</tbody>
+                    </table>`;
+                }
+
+                // Show modal
+                const modal = document.createElement('div');
+                modal.className = 'modal';
+                modal.style.display = 'flex';
+                modal.id = 'versionModal';
+                modal.innerHTML = `
+                    <div class="modal-content" style="max-width:700px; width:95%;">
+                        <span class="close-btn" onclick="document.getElementById('versionModal').remove()">&times;</span>
+                        <div class="modal-header"><h2>📋 Version History — ${inspectionNumber}</h2></div>
+                        <div style="max-height:400px; overflow-y:auto;">${content}</div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            } catch (error) {
+                showToast('Failed to load versions: ' + error.message, 'error');
+            }
+        }
+
+        async function previewPDF(inspectionId) {
+            const loader = document.getElementById('pdfLoader');
+            try {
+                loader.classList.add('active');
+
+                // 1. Fetch the transformed report data (Instant)
+                const response = await fetch(`${API_BASE}/inspections/${inspectionId}/report-data`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to fetch report data');
+                const result = await response.json();
+
+                // 2. Save to sessionStorage for report-generator.html to pick up
+                sessionStorage.setItem('preview_report_data', JSON.stringify(result.data));
+
+                // 3. Open the report generator directly (Instant HTML rendering)
+                window.open('report-generator.html', '_blank');
+
+            } catch (error) {
+                console.error(error);
+                showToast('Error generating preview: ' + error.message, 'error');
+            } finally {
+                loader.classList.remove('active');
+            }
+        }
+
         // Generate PDF
+
         async function generatePDF(inspectionId) {
             const loader = document.getElementById('pdfLoader');
             try {
@@ -1443,6 +2222,11 @@
                 input.type = 'password';
                 btn.textContent = 'Show';
             }
+        }
+
+        // Edit Inspection (Post-Generation Revision)
+        function editInspection(inspectionId) {
+            window.open(`/app.html?inspectionId=${inspectionId}&mode=revise`, '_blank');
         }
 
         // View Inspection Report Modal
@@ -1531,7 +2315,373 @@
             }
         }
 
-        // Logout
+
+        // Room Templates
+        let currentTemplateId = null;
+        let currentTemplateRooms = [];
+        let currentEditingRoomId = null; // Track which room is being edited
+
+        async function loadTemplates() {
+            try {
+                console.log('📥 Loading templates...');
+                document.getElementById('templatesList').innerHTML = '<div style="padding: 20px; text-align: center;">⏳ Loading...</div>';
+
+                const res = await apiCall('GET', '/settings/room-templates');
+                const templates = Array.isArray(res) ? res : (res.data || []);
+
+                if (!templates || templates.length === 0) {
+                    document.getElementById('templatesList').innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No templates found</div>';
+                    return;
+                }
+
+                const html = templates.map(t => {
+                    const roomCount = Array.isArray(t.rooms) ? t.rooms.length : 0;
+                    return `
+                    <tr>
+                        <td data-label="Name" style="font-weight: bold;">${t.name}</td>
+                        <td data-label="Description">${t.description || '-'}</td>
+                        <td data-label="Rooms"><span class="badge badge-info">${roomCount} Rooms</span></td>
+                        <td data-label="Last Updated">${new Date(t.updatedAt || t.createdAt).toLocaleDateString()}</td>
+                        <td data-label="Action">
+                            <button class="btn btn-secondary" onclick='editTemplate(${JSON.stringify(t).replace(/'/g, "&apos;")})'>✏️ Edit</button>
+                            <button class="btn btn-danger" onclick="deleteTemplate('${t.id}')">🗑️ Delete</button>
+                        </td>
+                    </tr>
+                    `;
+                }).join('');
+
+                document.getElementById('templatesList').innerHTML = `
+                    <div style="margin-top: 20px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Template Name</th>
+                                    <th>Description</th>
+                                    <th>Content</th>
+                                    <th>Last Updated</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>${html}</tbody>
+                        </table>
+                    </div>
+                `;
+            } catch (error) {
+                console.error(error);
+                document.getElementById('templatesList').innerHTML = '<div class="alert alert-error">Failed to load templates</div>';
+            }
+        }
+
+        function openTemplateModal() {
+            currentTemplateId = null;
+            currentEditingRoomId = null;
+            currentTemplateRooms = [];
+            document.getElementById('templateModalTitle').textContent = 'Add Property Template';
+            document.getElementById('tempName').value = '';
+            document.getElementById('tempDesc').value = '';
+
+            // Reset room form too
+            cancelEditRoom();
+
+            renderTemplateRooms();
+            document.getElementById('templateModal').classList.add('active');
+        }
+
+        function closeTemplateModal() {
+            document.getElementById('templateModal').classList.remove('active');
+            cancelEditRoom();
+        }
+
+        function editTemplate(template) {
+            currentTemplateId = template.id;
+            currentTemplateRooms = template.rooms || [];
+            currentEditingRoomId = null;
+
+            document.getElementById('templateModalTitle').textContent = 'Edit Property Template';
+            document.getElementById('tempName').value = template.name;
+            document.getElementById('tempDesc').value = template.description || '';
+
+            // Reset room form
+            cancelEditRoom();
+
+            renderTemplateRooms();
+            document.getElementById('templateModal').classList.add('active');
+        }
+
+        function addDimRow(containerId, type, h = '', w = '') {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = 'dim-row';
+            div.style.cssText = 'display: flex; gap: 5px; margin-bottom: 5px;';
+            div.innerHTML = `
+                <input type="number" class="dim-input ${type}-h" placeholder="H" value="${h}">
+                <input type="number" class="dim-input ${type}-w" placeholder="W" value="${w}">
+                <button type="button" class="btn btn-secondary" style="padding: 0 8px;" onclick="removeDimRow(this)">×</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function removeDimRow(btn) {
+            btn.parentElement.remove();
+        }
+
+        function addRoomToTemplate() {
+            const name = document.getElementById('roomTempName').value;
+            if (!name) {
+                showToast('Room Name is required', 'error');
+                return;
+            }
+
+            // Collect multiple dimensions
+            const roomDims = [];
+            const roomDimRows = document.querySelectorAll('#roomDimsContainer .dim-row');
+            if (roomDimRows.length > 0) {
+                roomDimRows.forEach(row => {
+                    const l = row.querySelector('.room-h').value; // Reusing .dim-input class structure, h=Length
+                    const w = row.querySelector('.room-w').value; // w=Width
+                    if (l && w) roomDims.push({ l, w });
+                });
+            }
+
+            const doors = [];
+            document.querySelectorAll('#doorDimsContainer .dim-row').forEach(row => {
+                const h = row.querySelector('.door-h').value;
+                const w = row.querySelector('.door-w').value;
+                if (h && w) doors.push({ h, w });
+            });
+
+            const windows = [];
+            document.querySelectorAll('#windowDimsContainer .dim-row').forEach(row => {
+                const h = row.querySelector('.window-h').value;
+                const w = row.querySelector('.window-w').value;
+                if (h && w) windows.push({ h, w });
+            });
+
+            const roomData = {
+                id: currentEditingRoomId || Date.now().toString(),
+                name: name,
+                wallFinish: document.getElementById('roomTempWall').value,
+                flooring: document.getElementById('roomTempFloor').value,
+                remarks: document.getElementById('roomTempRemarks').value,
+                ceilingHeight: document.getElementById('roomTempCeiling').value,
+                dimensions: {
+                    room: roomDims, // New room dimensions array
+                    tile: {
+                        l: document.getElementById('roomTempTileL').value,
+                        w: document.getElementById('roomTempTileW').value
+                    },
+                    door: doors,
+                    window: windows
+                }
+            };
+
+            if (currentEditingRoomId) {
+                // Update existing room
+                const index = currentTemplateRooms.findIndex(r => r.id === currentEditingRoomId);
+                if (index !== -1) {
+                    currentTemplateRooms[index] = roomData;
+                    showToast('Room updated', 'success');
+                }
+                cancelEditRoom(); // Reset form and state
+            } else {
+                // Add new room
+                currentTemplateRooms.push(roomData);
+                showToast('Room added to template', 'success');
+
+                // Clear form but keep adding mode
+                document.getElementById('roomTempName').value = '';
+                document.getElementById('roomTempRemarks').value = '';
+                document.getElementById('roomTempCeiling').value = '';
+                document.getElementById('roomTempWall').value = '';
+                document.getElementById('roomTempFloor').value = '';
+                document.getElementById('roomTempTileL').value = '';
+                document.getElementById('roomTempTileW').value = '';
+
+                // Reset dynamic containers
+                document.getElementById('roomDimsContainer').innerHTML = '';
+                addDimRow('roomDimsContainer', 'room');
+
+                document.getElementById('doorDimsContainer').innerHTML = '';
+                addDimRow('doorDimsContainer', 'door');
+
+                document.getElementById('windowDimsContainer').innerHTML = '';
+                addDimRow('windowDimsContainer', 'window');
+            }
+
+            renderTemplateRooms();
+        }
+
+        function editTemplateRoom(roomId) {
+            const room = currentTemplateRooms.find(r => r.id === roomId);
+            if (!room) return;
+
+            currentEditingRoomId = roomId;
+
+            // Populate main fields
+            document.getElementById('roomTempName').value = room.name || '';
+            document.getElementById('roomTempWall').value = room.wallFinish || '';
+            document.getElementById('roomTempFloor').value = room.flooring || '';
+            document.getElementById('roomTempRemarks').value = room.remarks || '';
+            document.getElementById('roomTempCeiling').value = room.ceilingHeight || '';
+
+            // Populate Tile dimensions
+            document.getElementById('roomTempTileL').value = room.dimensions?.tile?.l || '';
+            document.getElementById('roomTempTileW').value = room.dimensions?.tile?.w || '';
+
+            // Populate Room Dimensions
+            const roomContainer = document.getElementById('roomDimsContainer');
+            roomContainer.innerHTML = '';
+            if (room.dimensions?.room && room.dimensions.room.length > 0) {
+                room.dimensions.room.forEach(d => addDimRow('roomDimsContainer', 'room', d.l, d.w));
+            } else {
+                addDimRow('roomDimsContainer', 'room'); // Empty default
+            }
+
+            // Populate Doors
+            const doorContainer = document.getElementById('doorDimsContainer');
+            doorContainer.innerHTML = '';
+            if (room.dimensions?.door && room.dimensions.door.length > 0) {
+                room.dimensions.door.forEach(d => addDimRow('doorDimsContainer', 'door', d.h, d.w));
+            } else {
+                addDimRow('doorDimsContainer', 'door'); // Empty default
+            }
+
+            // Populate Windows
+            const windowContainer = document.getElementById('windowDimsContainer');
+            windowContainer.innerHTML = '';
+            if (room.dimensions?.window && room.dimensions.window.length > 0) {
+                room.dimensions.window.forEach(w => addDimRow('windowDimsContainer', 'window', w.h, w.w));
+            } else {
+                addDimRow('windowDimsContainer', 'window'); // Empty default
+            }
+
+            // Change button text and show cancel button
+            const btn = document.querySelector('button[onclick="addRoomToTemplate()"]');
+            btn.textContent = 'Update Room';
+
+            // Add or show Cancel button
+            let cancelBtn = document.getElementById('cancelRoomEditBtn');
+            if (!cancelBtn) {
+                cancelBtn = document.createElement('button');
+                cancelBtn.id = 'cancelRoomEditBtn';
+                cancelBtn.type = 'button';
+                cancelBtn.className = 'btn btn-secondary';
+                cancelBtn.textContent = 'Cancel Edit';
+                cancelBtn.style.marginTop = '10px';
+                cancelBtn.style.width = '100%';
+                cancelBtn.onclick = cancelEditRoom;
+                btn.parentNode.appendChild(cancelBtn);
+            } else {
+                cancelBtn.style.display = 'block';
+            }
+        }
+
+        function cancelEditRoom() {
+            currentEditingRoomId = null;
+
+            // Clear form fields
+            document.getElementById('roomTempName').value = '';
+            document.getElementById('roomTempWall').value = '';
+            document.getElementById('roomTempFloor').value = '';
+            document.getElementById('roomTempRemarks').value = '';
+            document.getElementById('roomTempCeiling').value = '';
+            document.getElementById('roomTempTileL').value = '';
+            document.getElementById('roomTempTileW').value = '';
+
+            // Reset dynamic containers
+            document.getElementById('roomDimsContainer').innerHTML = '';
+            addDimRow('roomDimsContainer', 'room');
+
+            document.getElementById('doorDimsContainer').innerHTML = '';
+            addDimRow('doorDimsContainer', 'door');
+
+            document.getElementById('windowDimsContainer').innerHTML = '';
+            addDimRow('windowDimsContainer', 'window');
+
+            // Reset button text
+            const btn = document.querySelector('button[onclick="addRoomToTemplate()"]');
+            if (btn) btn.textContent = '+ Add Room';
+
+            // Hide cancel button
+            const cancelBtn = document.getElementById('cancelRoomEditBtn');
+            if (cancelBtn) cancelBtn.style.display = 'none';
+        }
+
+        function removeRoomFromTemplate(roomId) {
+            if (currentEditingRoomId === roomId) {
+                showToast('Cannot delete room while editing it', 'error');
+                return;
+            }
+            currentTemplateRooms = currentTemplateRooms.filter(r => r.id !== roomId);
+            renderTemplateRooms();
+        }
+
+        function renderTemplateRooms() {
+            const container = document.getElementById('templateRoomsList');
+            document.getElementById('roomCount').textContent = currentTemplateRooms.length;
+
+            if (currentTemplateRooms.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 20px; color: #94a3b8; font-style: italic;">No rooms added yet</div>';
+                return;
+            }
+
+            container.innerHTML = currentTemplateRooms.map(r => `
+                <div style="background: white; padding: 10px; border-radius: 5px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong style="color: #1e3c72;">${r.name}</strong>
+                        <div style="font-size: 11px; color: #64748b;">
+                            ${r.wallFinish ? `Wall: ${r.wallFinish}` : ''} 
+                            ${r.flooring ? `• Floor: ${r.flooring}` : ''}
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 5px;">
+                        <button onclick="editTemplateRoom('${r.id}')" class="btn btn-secondary" style="padding: 2px 8px; font-size: 12px;">Edit</button>
+                        <button onclick="removeRoomFromTemplate('${r.id}')" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 18px;">&times;</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function saveTemplate() {
+            const name = document.getElementById('tempName').value;
+            if (!name) {
+                showToast('Template Name is required', 'error');
+                return;
+            }
+
+            const payload = {
+                id: currentTemplateId,
+                name: name,
+                description: document.getElementById('tempDesc').value,
+                rooms: currentTemplateRooms
+            };
+
+            try {
+                const res = await apiCall('POST', '/settings/room-templates', payload);
+                if (res.success) {
+                    showToast('Template saved successfully', 'success');
+                    closeTemplateModal();
+                    loadTemplates();
+                } else {
+                    showToast(res.message || 'Failed to save template', 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                showToast('Error saving template', 'error');
+            }
+        }
+
+        async function deleteTemplate(id) {
+            if (!confirm('Are you sure you want to delete this template?')) return;
+            try {
+                await apiCall('DELETE', `/settings/room-templates/${id}`);
+                showToast('Template deleted', 'success');
+                loadTemplates();
+            } catch (error) {
+                showToast('Error deleting template: ' + error.message, 'error');
+            }
+        }
+
         async function logout() {
             if (await showConfirm('Are you sure you want to logout?')) {
                 localStorage.clear();

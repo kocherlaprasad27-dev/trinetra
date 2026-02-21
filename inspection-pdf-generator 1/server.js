@@ -9,13 +9,22 @@ const app = express();
 
 app.use(cors());
 
-// 🔀 Proxy Middleware (MUST come before express.json() to preserve request body stream)
-app.use('/api', (req, res, next) => {
+// 🔀 Proxy Middleware
+app.use((req, res, next) => {
     // List of routes handled locally by this PWA server
     const localRoutes = ['/health', '/generate-pdf', '/pdfs'];
+    const backendPrefixes = ['/api', '/uploads'];
 
-    // If it's a local route, pass to next handlers (express.json, etc.)
-    if (localRoutes.includes(req.path)) {
+    // Check if the request should be handled locally
+    if (localRoutes.some(route => req.path.startsWith('/api' + route) || localRoutes.includes(req.path))) {
+        // Special case for health, generate-pdf, pdfs which are under /api but local
+        if (localRoutes.some(route => req.path === '/api' + route || req.path === route)) {
+            return next();
+        }
+    }
+
+    // If it doesn't start with a backend prefix, serve as static/local
+    if (!backendPrefixes.some(prefix => req.path.startsWith(prefix))) {
         return next();
     }
 
@@ -73,7 +82,15 @@ app.use('/api', (req, res, next) => {
 });
 
 app.use(express.json({ limit: '100mb' }));
-app.use(express.static(__dirname));
+app.use(express.static(__dirname, {
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.html')) {
+            res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+            res.set('Pragma', 'no-cache');
+            res.set('Expires', '0');
+        }
+    }
+}));
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -85,10 +102,32 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'app.html'));
 });
 
+// 🚀 Optimized PDF Generation with Persistent Browser
+let browser;
+
+async function initBrowser() {
+    try {
+        if (browser) return;
+        console.log('🚀 Launching persistent browser for PDF generation...');
+        browser = await chromium.launch({
+            headless: true,
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+        });
+        console.log('✅ Browser launched successfully');
+    } catch (error) {
+        console.error('❌ Failed to launch browser:', error);
+    }
+}
+
 // PDF Generation API
 app.post('/api/generate-pdf', async (req, res) => {
     console.log('📄 PDF generation request received');
 
+    if (!browser) {
+        await initBrowser();
+    }
+
+    let page;
     try {
         const reportData = req.body;
 
@@ -96,27 +135,23 @@ app.post('/api/generate-pdf', async (req, res) => {
             return res.status(400).json({ error: 'Invalid report data' });
         }
 
-        // Create pdfs directory
         const pdfsDir = path.join(__dirname, 'pdfs');
         if (!fs.existsSync(pdfsDir)) {
             fs.mkdirSync(pdfsDir, { recursive: true });
         }
 
-        // Launch Playwright
-        const browser = await chromium.launch({ headless: true });
-        const page = await browser.newPage();
+        page = await browser.newPage();
 
-        // Inject data into page
         await page.addInitScript(data => {
             window.__REPORT_DATA__ = data;
         }, reportData);
 
-        // Load report template
-        const reportPath = `file://${path.join(__dirname, 'report-generator.html')}`;
-        await page.goto(reportPath, { waitUntil: 'networkidle', timeout: 30000 });
-        await page.waitForTimeout(2000);
+        const reportPath = `http://localhost:${process.env.PORT || 3000}/report-generator.html`;
+        await page.goto(reportPath, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
-        // Generate PDF
+        // Wait for the custom "PDF_READY" signal from the template
+        await page.waitForFunction(() => window.PDF_READY === true, { timeout: 15000 });
+
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
         const filename = `inspection-${timestamp}.pdf`;
         const pdfPath = path.join(pdfsDir, filename);
@@ -128,13 +163,16 @@ app.post('/api/generate-pdf', async (req, res) => {
             margin: { top: '10mm', right: '10mm', bottom: '10mm', left: '10mm' }
         });
 
-        await browser.close();
         console.log('✅ PDF generated:', filename);
-
         res.download(pdfPath, filename);
+
     } catch (error) {
         console.error('❌ PDF Error:', error);
-        res.status(500).json({ error: 'Failed to generate PDF', message: error.message });
+        if (!res.headersSent) {
+            res.status(500).json({ error: 'Failed to generate PDF', message: error.message });
+        }
+    } finally {
+        if (page) await page.close();
     }
 });
 
@@ -155,7 +193,6 @@ app.get('/api/pdfs', (req, res) => {
     res.json({ pdfs: files });
 });
 
-
 // Serve PDFs
 app.use('/pdfs', express.static(path.join(__dirname, 'pdfs')));
 
@@ -165,3 +202,6 @@ http.createServer(app).listen(PORT, '0.0.0.0', () => {
     console.log(`✓ Node app running on http://0.0.0.0:${PORT}`);
     console.log(`✓ Access via https://trinetra.onthewifi.com (Nginx proxies to this app)`);
 });
+
+// Initialize browser on startup
+initBrowser();

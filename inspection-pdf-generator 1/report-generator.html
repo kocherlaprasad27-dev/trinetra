@@ -152,8 +152,11 @@
     }
 
     .cover-logo {
-      width: 200px;
+      max-width: 300px;
+      max-height: 120px;
+      object-fit: contain;
       margin: 0 auto 40px auto;
+      display: block;
     }
 
     .cover-layout {
@@ -269,8 +272,11 @@
     }
 
     .letterhead-logo {
-      height: 50px;
+      max-height: 70px;
+      max-width: 250px;
       width: auto;
+      height: auto;
+      object-fit: contain;
     }
 
     .letterhead-text {
@@ -827,7 +833,8 @@
   </div>
   <section class="cover">
     <div style="text-align: center;">
-      <img src="assets/images/Trinetra.png" alt="Trinetra Logo" class="cover-logo" />
+      <img src="assets/images/Trinetra.png" alt="Trinetra Logo" class="cover-logo"
+        onerror="this.src='assets/images/Trinetra.png'; this.onerror=null;" />
     </div>
 
     <div class="cover-layout">
@@ -862,7 +869,7 @@
   <section style="display: flex; flex-direction: column; min-height: 100vh;">
     <div class="letterhead">
       <img src="assets/images/Trinetra.png" alt="Trinetra Logo" class="letterhead-logo"
-        style="width: 120px; height: 120px;" />
+        onerror="this.src='assets/images/Trinetra.png'; this.onerror=null;" />
       <div class="letterhead-text">
         <h2>TRINETRA</h2>
         <p>Professional Property Inspection Services</p>
@@ -894,7 +901,7 @@
     <!-- Letterhead removed: now page-level only -->
     <div class="letterhead">
       <img src="assets/images/Trinetra.png" alt="Trinetra Logo" class="letterhead-logo"
-        style="width: 120px; height: 120px;" />
+        style="width: 120px; height: 120px;" onerror="this.src='assets/images/Trinetra.png'; this.onerror=null;" />
       <div class="letterhead-text">
         <h2>TRINETRA</h2>
         <p>Professional Property Inspection Services</p>
@@ -948,7 +955,7 @@
     <!-- Letterhead removed: now page-level only -->
     <div class="letterhead">
       <img src="assets/images/Trinetra.png" alt="Trinetra Logo" class="letterhead-logo"
-        style="width: 120px; height: 120px;" />
+        style="width: 120px; height: 120px;" onerror="this.src='assets/images/Trinetra.png'; this.onerror=null;" />
       <div class="letterhead-text">
         <h2>TRINETRA</h2>
         <p>Professional Property Inspection Services</p>
@@ -992,7 +999,7 @@
     <!-- Letterhead removed: now page-level only -->
     <div class="letterhead">
       <img src="assets/images/Trinetra.png" alt="Trinetra Logo" class="letterhead-logo"
-        style="width: 120px; height: 120px;" />
+        style="width: 120px; height: 120px;" onerror="this.src='assets/images/Trinetra.png'; this.onerror=null;" />
       <div class="letterhead-text">
         <h2>TRINETRA</h2>
         <p>Professional Property Inspection Services</p>
@@ -1074,7 +1081,7 @@
     <!-- Letterhead removed: now page-level only -->
     <div class="letterhead">
       <img src="assets/images/Trinetra.png" alt="Trinetra Logo" class="letterhead-logo"
-        style="width: 120px; height: 120px;" />
+        onerror="this.src='assets/images/Trinetra.png'; this.onerror=null;" />
       <div class="letterhead-text">
         <h2>TRINETRA</h2>
         <p>Professional Property Inspection Services</p>
@@ -1105,6 +1112,10 @@
             <div class="dimension-icon">🗝️</div>
             <div>RAILING</div>
           </th>
+          <th class="dimensions-header">
+            <div class="dimension-icon">📝</div>
+            <div>REMARKS</div>
+          </th>
         </tr>
       </thead>
       <tbody id="materialTableBody"></tbody>
@@ -1118,7 +1129,7 @@
     <!-- Letterhead removed: now page-level only -->
     <div class="letterhead">
       <img src="assets/images/Trinetra.png" alt="Trinetra Logo" class="letterhead-logo"
-        style="width: 120px; height: 120px;" />
+        onerror="this.src='assets/images/Trinetra.png'; this.onerror=null;" />
       <div class="letterhead-text">
         <h2>TRINETRA</h2>
         <p>Professional Property Inspection Services</p>
@@ -1255,6 +1266,21 @@
         }
       }
 
+      // Added: sessionStorage preview data check (FASTEST)
+      if (!reportData) {
+        const previewData = sessionStorage.getItem('preview_report_data');
+        if (previewData) {
+          try {
+            reportData = JSON.parse(previewData);
+            console.log('✅ Report data loaded from sessionStorage (Instant Preview)');
+            // Optional: clear it if you want it to be one-time
+            // sessionStorage.removeItem('preview_report_data');
+          } catch (e) {
+            console.error('SessionStorage parse error', e);
+          }
+        }
+      }
+
       // Added: Playwright injected data fallback
       if (!reportData && window.__REPORT_DATA__) {
         reportData = window.__REPORT_DATA__;
@@ -1286,7 +1312,8 @@
             water: reportData.quality?.water || {}
           },
 
-          summary: reportData.summary || {}
+          summary: reportData.summary || {},
+          logoUrl: reportData.logoUrl || ""
         };
 
         console.log('📊 Normalized data:', normalizedData);
@@ -1295,6 +1322,20 @@
 
       function populateReport(data) {
         console.log('🎨 Starting to populate report...');
+
+        /* =============================
+           LOGO HANDLING
+        ============================== */
+        if (data.logoUrl) {
+          document.querySelectorAll('.cover-logo, .letterhead-logo').forEach(img => {
+            img.src = data.logoUrl;
+            // Also ensure onerror fallback is set correctly
+            img.onerror = function () {
+              this.src = 'assets/images/Trinetra.png';
+              this.onerror = null;
+            };
+          });
+        }
 
         /* =============================
            BASIC HEADER DATA
@@ -1464,6 +1505,7 @@
         <td>${room.materials?.door || "—"}</td>
         <td>${room.materials?.windows || "—"}</td>
         <td>${room.materials?.railing || "—"}</td>
+        <td>${room.remarks || "—"}</td>
       `;
           materialBody.appendChild(row);
         });
@@ -1618,7 +1660,8 @@
           section.innerHTML = `
   <!-- LETTERHEAD -->
   <div class="letterhead">
-    <img src="assets/images/Trinetra.png" alt="Trinetra Logo" class="letterhead-logo" style="width: 120px; height: 120px;" />
+    <img src="${data.logoUrl || 'assets/images/Trinetra.png'}" alt="Trinetra Logo" class="letterhead-logo" 
+      onerror="this.src='assets/images/Trinetra.png'; this.onerror=null;" />
     <div class="letterhead-text">
       <h2>TRINETRA</h2>
       <p>Professional Property Inspection Services</p>
@@ -1644,7 +1687,10 @@
             let imagesHTML = '<span style="color:#999;font-style:italic;font-size:14px;">No Image</span>';
             if (issue.images && issue.images.length > 0) {
               imagesHTML = '<div class="inspection-table-images">' +
-                issue.images.map(img => `<img src="${img}" alt="Issue image" />`).join('') +
+                issue.images.map(img => {
+                  const src = typeof img === 'object' ? img.url : img;
+                  return `<img src="${src}" alt="Issue image" onerror="this.src='assets/images/Trinetra.png'; this.style.opacity='0.2'" />`;
+                }).join('') +
                 '</div>';
             }
 
@@ -1695,7 +1741,8 @@
           summarySection.innerHTML = `
   <!-- LETTERHEAD -->
   <div class="letterhead">
-    <img src="assets/images/Trinetra.png" alt="Trinetra Logo" class="letterhead-logo" style="width: 120px; height: 120px;" />
+    <img src="${data.logoUrl || 'assets/images/Trinetra.png'}" alt="Trinetra Logo" class="letterhead-logo" 
+      onerror="this.src='assets/images/Trinetra.png'; this.onerror=null;" />
     <div class="letterhead-text">
       <h2>TRINETRA</h2>
       <p>Professional Property Inspection Services</p>
@@ -1793,7 +1840,8 @@
           }, 100);
         });
 
-        console.log('✅ Report population complete');
+        console.log('Report population complete');
+        window.PDF_READY = true;
       }
     })();
   </script>

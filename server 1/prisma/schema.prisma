@@ -16,6 +16,7 @@ enum InspectionStatus {
   IN_PROGRESS
   SUBMITTED
   FINAL
+  REPORT_GENERATED
   COMPLETED
   REJECTED
 }
@@ -94,6 +95,24 @@ model Inspection {
   updatedAt        DateTime @updatedAt
   
   auditLog         AuditLog[]
+  versions         ReportVersion[]
+}
+
+model ReportVersion {
+  id               String   @id @default(uuid())
+  inspectionId     String
+  inspection       Inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  
+  versionNumber    Int
+  inspectionJson   Json      // Snapshot of data at this version
+  
+  pdfPath          String?   // Path to PDF file for this version
+  pdfUrl           String?
+  
+  remarks          String?   // Reason for revision (e.g. "Draft", "V1", "Final with remarks")
+  createdById      String?
+  
+  createdAt        DateTime @default(now())
 }
 
 model AuditLog {

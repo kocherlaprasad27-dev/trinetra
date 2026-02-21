@@ -1,0 +1,55 @@
+[
+  {
+    "id": "1771504511993",
+    "name": "Rainbow Villas,Block 2, 1st floor series 1",
+    "description": "",
+    "rooms": [
+      {
+        "id": "1771504448401",
+        "name": "Living Room ",
+        "wallFinish": "Paint",
+        "flooring": "Tile",
+        "remarks": "",
+        "ceilingHeight": "12",
+        "dimensions": {
+          "room": [
+            {
+              "l": "10.56",
+              "w": "12"
+            }
+          ],
+          "tile": {
+            "l": "4",
+            "w": "4"
+          },
+          "door": [],
+          "window": []
+        }
+      },
+      {
+        "id": "1771504502599",
+        "name": "Kitchen",
+        "wallFinish": "Wallpaper",
+        "flooring": "Tile",
+        "remarks": "",
+        "ceilingHeight": "12",
+        "dimensions": {
+          "tile": {
+            "l": "4",
+            "w": "4"
+          },
+          "door": {
+            "h": "7",
+            "w": "4"
+          },
+          "window": {
+            "h": "5",
+            "w": "5"
+          }
+        }
+      }
+    ],
+    "updatedAt": "2026-02-19T15:04:37.219Z",
+    "createdAt": "2026-02-19T12:35:11.994Z"
+  }
+]
